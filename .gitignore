@@ -1,0 +1,7 @@
+.venv
+/__pycahce__
+.DS_Store
+*.log
+
+.idea
+.vscode
