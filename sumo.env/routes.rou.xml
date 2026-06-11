@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-06-02 19:13:00.846197 by Eclipse SUMO randomTrips.py v1_27_0+0000-e238ea04b71
+<configuration>
+    <net-file value="network.net.xml"/>
+    <route-file value="routes.rou.xml"/>
+    <end value="1000.0"/>
+</configuration>
+-->
+
+<!-- generated on 2026-06-02T19:13:00.797327+02:00 by Eclipse SUMO duarouter 1.27.0
+<duarouterConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="network.net.xml"/>
+        <route-files value="trips.trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="routes.rou.xml"/>
+        <alternatives-output value="NUL"/>
+    </output>
+
+    <processing>
+        <routing-threads value="6"/>
+    </processing>
+
+    <time>
+        <begin value="0"/>
+        <end value="1000.0"/>
+    </time>
+
+    <report>
+        <no-warnings value="true"/>
+        <ignore-errors value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+</duarouterConfiguration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+  <vehicle id="0" depart="0.00">
+    <route edges="B2B1 B1B0 B0A0 A0A1" />
+  </vehicle>
+  <vehicle id="1" depart="1.00">
+    <route edges="A2B2 B2A2 A2A1" />
+  </vehicle>
+  <vehicle id="2" depart="2.00">
+    <route edges="C0B0 B0B1 B1B2 B2C2" />
+  </vehicle>
+  <vehicle id="3" depart="3.00">
+    <route edges="C1C2 C2B2 B2A2 A2A1 A1A0" />
+  </vehicle>
+  <vehicle id="4" depart="4.00">
+    <route edges="B1A1 A1B1 B1B0 B0A0 A0A1" />
+  </vehicle>
+  <vehicle id="5" depart="5.00">
+    <route edges="A2A1 A1B1 B1B2" />
+  </vehicle>
+  <vehicle id="6" depart="6.00">
+    <route edges="A0A1 A1B1" />
+  </vehicle>
+  <vehicle id="7" depart="7.00">
+    <route edges="B2B1 B1C1" />
+  </vehicle>
+  <vehicle id="8" depart="8.00">
+    <route edges="A2A1 A1B1 B1B2 B2A2" />
+  </vehicle>
+  <vehicle id="9" depart="9.00">
+    <route edges="C1B1 B1B0 B0A0 A0A1" />
+  </vehicle>
+  <vehicle id="10" depart="10.00">
+    <route edges="C1B1 B1B2 B2C2" />
+  </vehicle>
+</routes>

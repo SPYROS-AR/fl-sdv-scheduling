@@ -1,0 +1,8 @@
+services:
+  sumo-sim:
+    build: .
+
+    container_name: sumo-traci-runner
+
+    volumes:
+      - .:/app
