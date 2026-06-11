@@ -1,9 +1,7 @@
 import math
 
-import traci
-import sumolib
 
-from src.traci_bridge import TraciBridge
+from traci_bridge import TraciBridge
 
 USE_GUI = False
 SUMO_CONFIG = "sumo.env/simulation.sumocfg"

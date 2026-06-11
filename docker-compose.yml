@@ -4,5 +4,5 @@ services:
 
     container_name: sumo-traci-runner
 
-    volumes:
-      - .:/app
+    # Maybe add volumes if needed later
+
