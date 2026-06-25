@@ -1,5 +1,6 @@
-.sumo-venv
-/src/__pycahce__
+.sumo-venv/
+.venv/
+/src/__pycahce__/
 .DS_Store
 *.log
 

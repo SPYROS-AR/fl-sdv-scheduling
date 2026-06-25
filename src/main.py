@@ -1,35 +1,51 @@
 import math
-
-
 from traci_bridge import TraciBridge
+import numpy as np
+
 
 USE_GUI = False
 SUMO_CONFIG = "sumo.env/simulation.sumocfg"
 
-# RSU Environment Parameters
-RSU_X = 200.0  # Center of sumo grid
-RSU_Y = 200.0
+# MEC Environment Parameters
+MEC_X, MEC_Y = 200.0, 200.0
+MAX_BANDWIDTH = 50.0
+MAX_DISTANCE = 2000.0
+MIN_DISTANCE = 50.0
 
-MAX_BANDWIDTH = 50.0  # Maximum capacity in Mbps
-MAX_DISTANCE = 200.0  # Out-of-range boundary threshold
-MIN_DISTANCE = 50.0  # Full-signal boundary threshold
+FREQ_MHZ = 5900.0
+Pt = 23.0  # dBm
+FLOOR_NOISE = -100.0  # dBm
+BANDWITDH = 20.0  # MHz
 
 
-def calculate_bandwidth(veh_x, veh_y):
+def calculate_uplink_data_rate(veh_x: float, veh_y: float) -> float:
     """
-    Translates phyical 2d location into uplink Bandwitdh (B_i)
+    Translates physical 2d location into uplink bandwidth (Mbps).
     """
-    # Calculate euclidean distance to edge server
-    distance_to_server = math.sqrt((RSU_X - veh_x) ** 2 + (RSU_Y - veh_y) ** 2)
+    # Calculate Euclidean distance to edge server
+    distance_to_server = math.sqrt((MEC_X - veh_x) ** 2 + (MEC_Y - veh_y) ** 2)
 
-    if distance_to_server > MAX_DISTANCE:
+    # Boundary checks
+    if distance_to_server >= MAX_DISTANCE:
         return 0.0
-    if distance_to_server < MIN_DISTANCE:
+    if distance_to_server <= MIN_DISTANCE:
         return MAX_BANDWIDTH
 
-    # FIX: Use accurate power loss function
-    scale = 1.0 - ((distance_to_server - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE))
-    return MAX_BANDWIDTH * scale
+    # Calculate Path Loss (dB) using the standard FSPL formula
+    fspl_db = 20 * math.log10(distance_to_server) + 20 * math.log10(FREQ_MHZ) - 27.55
+
+    # Received Power (dBm)
+    pr_dbm = Pt - fspl_db
+
+    # SNR (dB) and linear conversion
+    snr_db = pr_dbm - FLOOR_NOISE
+    snr_linear = 10 ** (snr_db / 10)
+
+    # Shannon Capacity (Mbps)
+    capacity = BANDWITDH * math.log2(1 + snr_linear)
+
+    # Hardware limit
+    return min(capacity, MAX_BANDWIDTH)
 
 
 def main():
@@ -49,7 +65,7 @@ def main():
 
             # Map physical metrics to system state variables
             for veh_id, data in telemetry.items():
-                bandwidth = calculate_bandwidth(data["x"], data["y"])
+                bandwidth = calculate_uplink_data_rate(data["x"], data["y"])
 
                 # Filter out passive nodes and log active client parameters
                 if bandwidth > 0:
