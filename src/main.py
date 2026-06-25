@@ -1,21 +1,31 @@
 import math
+from turtle import distance
 from traci_bridge import TraciBridge
 import numpy as np
-
+import random
 
 USE_GUI = False
 SUMO_CONFIG = "sumo.env/simulation.sumocfg"
 
 # MEC Environment Parameters
 MEC_X, MEC_Y = 200.0, 200.0
-MAX_BANDWIDTH = 50.0
-MAX_DISTANCE = 2000.0
-MIN_DISTANCE = 50.0
+MAX_BANDWIDTH = 250.0  # (Mbps)
+MAX_DISTANCE = 2000.0  # (meters)
+MIN_DISTANCE = 10.0  # (meters)
 
+
+c = 3e8  # speed of light (m/s)
 FREQ_MHZ = 5900.0
 Pt = 23.0  # dBm
 FLOOR_NOISE = -100.0  # dBm
-BANDWITDH = 20.0  # MHz
+BANDWIDTH = 20.0  # MHz
+PATH_LOSS_EXP = 3.5  # (Theoretic for shadowed urban tower)
+SHADOWING_STD_DEV = 6.0  # (db)
+D0 = 1.0  # Reference distance (meters)
+
+
+# Compute standard fspl for reference distance D0 once
+PL_d0 = 20 * math.log10(4 * math.pi * D0 * FREQ_MHZ * 1e6 / c)
 
 
 def calculate_uplink_data_rate(veh_x: float, veh_y: float) -> float:
@@ -23,27 +33,37 @@ def calculate_uplink_data_rate(veh_x: float, veh_y: float) -> float:
     Translates physical 2d location into uplink bandwidth (Mbps).
     """
     # Calculate Euclidean distance to edge server
-    distance_to_server = math.sqrt((MEC_X - veh_x) ** 2 + (MEC_Y - veh_y) ** 2)
+    dist = math.sqrt((MEC_X - veh_x) ** 2 + (MEC_Y - veh_y) ** 2)
+
+    # Edge case where vehicle is next to the server
+    dist = max(dist, 1.0)
 
     # Boundary checks
-    if distance_to_server >= MAX_DISTANCE:
+    if dist >= MAX_DISTANCE:
         return 0.0
-    if distance_to_server <= MIN_DISTANCE:
+    if dist <= MIN_DISTANCE:
         return MAX_BANDWIDTH
 
-    # Calculate Path Loss (dB) using the standard FSPL formula
-    fspl_db = 20 * math.log10(distance_to_server) + 20 * math.log10(FREQ_MHZ) - 27.55
+    # FIX: Add shadowing to vehicle objects and update every few seconds
+    # Gaussian shadowing
+    shadowing = random.gauss(0, SHADOWING_STD_DEV)
+
+    # --- LOG-DISTANCE PATH LOSS ---
+
+    # Calculate Path Loss (dB) using Log-distance path loss
+    path_loss_db = PL_d0 + (10 * PATH_LOSS_EXP * math.log10(dist / D0)) + shadowing
 
     # Received Power (dBm)
-    pr_dbm = Pt - fspl_db
+    pr_dbm = Pt - path_loss_db
 
     # SNR (dB) and linear conversion
     snr_db = pr_dbm - FLOOR_NOISE
     snr_linear = 10 ** (snr_db / 10)
 
     # Shannon Capacity (Mbps)
-    capacity = BANDWITDH * math.log2(1 + snr_linear)
+    capacity = BANDWIDTH * math.log2(1 + snr_linear)
 
+    print(f"Dist: {dist:.1f}m | SNR: {snr_db:.1f}dB")  # DEBUG
     # Hardware limit
     return min(capacity, MAX_BANDWIDTH)
 
