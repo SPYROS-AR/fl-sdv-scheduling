@@ -1,8 +1,0 @@
-services:
-  sumo-sim:
-    build: .
-
-    container_name: sumo-traci-runner
-
-    # Maybe add volumes as needed
-

@@ -1,56 +1,36 @@
 # FL-SDV Scheduling
 
-A hybrid simulation environment bridging physical vehicular traffic dynamics (SUMO) with a Python-based Federated Learning (FL) resource scheduler.
+A simulation environment for Federated Learning (FL) resource scheduling in Software-Defined Vehicles (SDVs)
 
-# System Model Status
-The framework currently executes a complete physical-to-mathematical pipeline at every simulation step:
-1. **Telemetry Extraction:** Captures live (X,Y) coordinates and velocity from active SUMO vehicles via the TraCI API.
-2. **RF Signal Modeling:** Calculates dynamic Uplink Bandwidth *B_i(t)* for each vehicle using a Linear-Distance Path Loss model relative to a central Edge Server.
-3. **FL Client Filtering:** Automatically drops clients from the active FL pool if they drive beyond the physical communication boundary.
-Additional edge-compute variables are currently in active development.
+## System Architecture and Capabilities
 
-## How to run
+The framework has transitioned to a dataset-driven mathematical simulation pipeline, moving away from live physical SUMO telemetry. The current workflow includes:
 
-### Installation & Execution
-Clone the repository and navigate into the project directory:
+1. **Data Setup:** Automatically clones the [`CLOUDNET2026-QoS-Offloading`](https://github.com/icsa-hua/CLOUDNET2026-QoS-Offloading.git) repository and generates network dataset samples based on configured vehicle and sample constants.
+2. **Data Processing:** Loads and cleans the generated network data (`network_dataset.csv`). It dynamically calculates the critical compute load (`u_crit_t`) for each vehicle utilizing factors such as car speed, urban scenarios (dense vs. sparse), and active network handovers.
+3. **Federated Learning Scheduler:** Utilizes a `HeuristicFLScheduler` to allocate compute resources (`c_i`, `e_i`) and decide communication states (`p_i`). The scheduler optimizes a custom cost function that balances:
+   - **Network Cost:** Evaluated using the vehicle's model size and the dynamic MEC channel bandwidth.
+   - **Compute Cost:** Derived from the compute allocation and the vehicle's critical load.
+   - **Model Drift:** Tracks model backlog/divergence and dynamically updates state constraints to trigger global syncs.
 
+## Project Structure
+
+- `main.py`: The entry point for the simulation. Orchestrates data generation, data processing, and scheduling logic.
+- `constants.py`: Contains global configuration variables (e.g., `NUM_SAMPLES`, `NUM_VEHICLES`).
+- `data_setup.py`: Automates the cloning of the dataset repository and executes the dataset generation script via a subprocess.
+- `data_processing.py`: Formats boolean columns, computes the critical load heuristic, and exports a cleaned dataset.
+- `scheduler.py`: Contains the `Vehicle` class representing FL clients, and the `FLScheduler` class which manages decision-making and generates visual plots of aggregate drift over time.
+
+## How to Run
+
+### Prerequisites
+Ensure you have Python 3 installed along with the required libraries:
 ```bash
-git clone https://github.com/SPYROS-AR/fl-sdv-scheduling.git
-cd fl-sdv-scheduling
+pip install pandas numpy matplotlib
 ```
-### Option 1: Local execution (Recommended for UI)
-1. Setup Environment
+### Execution
+Run the full pipeline (dataset generation, processing, and simulation execution) using:
 
 ```Bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+python3 main.py
 ```
-2. Configure UI
-
-Open src/main.py and set:
-USE_GUI = True
-
-3. Run Simulation
-
-Ensure you are in the project root directory:
-
-```Bash
-python3 src/main.py
-```
-### Option 2: Using docker (Headless)
-
-Use this method for isolated execution and fast data collection.
-The simulation runs entirely in the background. 
-
-Simply use the provided docker-compose.yml file and run this command.
-```Bash
-docker-compose up
-```
-*Note:* The GUI cannot be used in the container.
-
-## Known Limitations
-
-***Simplified RF Physics:*** The simulation currently uses a linear-distance path loss model to calculate bandwidth.
-Because real-world RF signals degrade exponentially, this artificially inflates bandwidth at medium distances.
-This will be replaced with a more realistic loss function in the future.
