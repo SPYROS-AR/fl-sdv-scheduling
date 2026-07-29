@@ -1,8 +1,9 @@
 import subprocess
 import os
 import sys
+import flwr_datasets
 
-from constants import NUM_SAMPLES
+from constants import DATASET, NUM_SAMPLES, NUM_VEHICLES, DIRICHLET_ALPHA
 
 
 def clone_and_run_dataset():
@@ -35,3 +36,18 @@ def clone_and_run_dataset():
         print("Dataset generation successful!")
     except subprocess.CalledProcessError as e:
         print(f"Failed to generate dataset: {e}")
+        
+        
+def setup_dataset()-> flwr_datasets.FederatedDataset:
+    """
+    Sets up the federated dataset for the vehicles using a Dirichlet partitioning strategy
+    """
+    
+    partitioner = flwr_datasets.partitioner.DirichletPartitioner(
+            num_partitions=NUM_VEHICLES,
+            partition_by="label",
+            alpha=DIRICHLET_ALPHA,
+            min_partition_size=10
+        )
+    
+    return flwr_datasets.FederatedDataset(dataset=DATASET, partitioners={"train": partitioner})

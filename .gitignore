@@ -1,9 +1,7 @@
-.sumo-venv/
 .venv/
-/src/__pycahce__/
+/src/__pycahce__/*
 .DS_Store
 *.log
-
 .idea
 .vscode
 /dataset

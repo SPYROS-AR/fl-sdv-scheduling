@@ -1,0 +1,281 @@
+[1mdiff --git a/src/__pycache__/constants.cpython-314.pyc b/src/__pycache__/constants.cpython-314.pyc[m
+[1mdeleted file mode 100644[m
+[1mindex 2674a6b..0000000[m
+Binary files a/src/__pycache__/constants.cpython-314.pyc and /dev/null differ
+[1mdiff --git a/src/__pycache__/data_processing.cpython-314.pyc b/src/__pycache__/data_processing.cpython-314.pyc[m
+[1mdeleted file mode 100644[m
+[1mindex 19ce14f..0000000[m
+Binary files a/src/__pycache__/data_processing.cpython-314.pyc and /dev/null differ
+[1mdiff --git a/src/__pycache__/data_setup.cpython-314.pyc b/src/__pycache__/data_setup.cpython-314.pyc[m
+[1mdeleted file mode 100644[m
+[1mindex a9800f1..0000000[m
+Binary files a/src/__pycache__/data_setup.cpython-314.pyc and /dev/null differ
+[1mdiff --git a/src/__pycache__/scheduler.cpython-314.pyc b/src/__pycache__/scheduler.cpython-314.pyc[m
+[1mdeleted file mode 100644[m
+[1mindex 7987084..0000000[m
+Binary files a/src/__pycache__/scheduler.cpython-314.pyc and /dev/null differ
+[1mdiff --git a/src/constants.py b/src/constants.py[m
+[1mindex 9ac12e4..964dae6 100644[m
+[1m--- a/src/constants.py[m
+[1m+++ b/src/constants.py[m
+[36m@@ -2,3 +2,14 @@[m [mNUM_SAMPLES = 100000 # Total number of samples[m
+ NUM_VEHICLES = 10 # Total number of vehicles[m
+ TOTAL_BANDWIDTH = 500.0  # Mbps[m
+ MAX_ALLOWED_DRIFT = 20.0  # Maximum allowed drift vehicles[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m[32mDATASET = "uoft-cs/cifar10"[m
+[32m+[m[32mDIRICHLET_ALPHA = 0.2[m
+[32m+[m
+[32m+[m[32m# CNN[m
+[32m+[m
+[32m+[m[32m# Conv2d: in_channels, out_channels, kernel_size[m
+[32m+[m[32mLAYER_1 = [3, 8, 3][m[41m  [m
+[32m+[m[32mLAYER_2 = [8, 16, 3][m
+\ No newline at end of file[m
+[1mdiff --git a/src/data_setup.py b/src/data_setup.py[m
+[1mindex 933ae0e..d1bed31 100644[m
+[1m--- a/src/data_setup.py[m
+[1m+++ b/src/data_setup.py[m
+[36m@@ -1,8 +1,9 @@[m
+ import subprocess[m
+ import os[m
+ import sys[m
+[32m+[m[32mimport flwr_datasets[m
+ [m
+[31m-from constants import NUM_SAMPLES[m
+[32m+[m[32mfrom constants import DATASET, NUM_SAMPLES, NUM_VEHICLES, DIRICHLET_ALPHA[m
+ [m
+ [m
+ def clone_and_run_dataset():[m
+[36m@@ -34,4 +35,19 @@[m [mdef clone_and_run_dataset():[m
+         [m
+         print("Dataset generation successful!")[m
+     except subprocess.CalledProcessError as e:[m
+[31m-        print(f"Failed to generate dataset: {e}")[m
+\ No newline at end of file[m
+[32m+[m[32m        print(f"Failed to generate dataset: {e}")[m
+[32m+[m[41m        [m
+[32m+[m[41m        [m
+[32m+[m[32mdef setup_dataset()-> flwr_datasets.FederatedDataset:[m
+[32m+[m[32m    """[m
+[32m+[m[32m    Sets up the federated dataset for the vehicles using a Dirichlet partitioning strategy[m
+[32m+[m[32m    """[m
+[32m+[m[41m    [m
+[32m+[m[32m    partitioner = flwr_datasets.partitioner.DirichletPartitioner([m
+[32m+[m[32m            num_partitions=NUM_VEHICLES,[m
+[32m+[m[32m            partition_by="label",[m
+[32m+[m[32m            alpha=DIRICHLET_ALPHA,[m
+[32m+[m[32m            min_partition_size=10[m
+[32m+[m[32m        )[m
+[32m+[m[41m    [m
+[32m+[m[32m    return flwr_datasets.FederatedDataset(dataset=DATASET, partitioners={"train": partitioner})[m
+\ No newline at end of file[m
+[1mdiff --git a/src/scheduler.py b/src/scheduler.py[m
+[1mindex 4f822ec..5245939 100644[m
+[1m--- a/src/scheduler.py[m
+[1m+++ b/src/scheduler.py[m
+[36m@@ -1,24 +1,10 @@[m
+[32m+[m[32mfrom enum import Enum[m
+[32m+[m
+ import pandas as pd[m
+ import numpy as np[m
+ import matplotlib.pyplot as plt[m
+ import constants[m
+[31m-[m
+[31m-# --- Vehicle ---[m
+[31m-[m
+[31m-class Vehicle:[m
+[31m-[m
+[31m-    def __init__(self, vehicle_id: int, model_size_mb: float = 50.0, [m
+[31m-                 epochs_per_compute: int = 10, drift_growth_rate: float = 0.5, [m
+[31m-                 drift_reduction_rate: float = 10.0, max_drift: float = constants.MAX_ALLOWED_DRIFT):[m
+[31m-        self.id = vehicle_id[m
+[31m-        self.M = model_size_mb # M_i[m
+[31m-        self.rho = epochs_per_compute # \rho_i[m
+[31m-        self.a = drift_growth_rate # a_i[m
+[31m-        self.b = drift_reduction_rate # b_i: Drift[m
+[31m-        self.D_max = max_drift # D_i^{max}[m
+[31m-        [m
+[31m-        # Dynamic State[m
+[31m-        self.current_drift = 0.0 # D_i(t)[m
+[32m+[m[32mfrom client import FLVehicle[m
+ [m
+ [m
+ # --- SCHEDULER ---[m
+[36m@@ -41,155 +27,29 @@[m [mclass FLScheduler:[m
+         [m
+         self.history = [][m
+ [m
+[31m-    def step(self, t: int, env_states: list) -> list:[m
+[31m-[m
+[31m-        # Compute allocation per vehicle[m
+[31m-        step_decisions = self._allocate_compute(env_states)[m
+[31m-        [m
+[31m-        # Communication decisions[m
+[31m-        self._decide_communication(step_decisions)[m
+[31m-        [m
+[31m-        # Cost calculation and state update[m
+[31m-        self._calculate_costs_and_update_state(t, step_decisions)[m
+[31m-        [m
+[31m-        return step_decisions[m
+[31m-[m
+[31m-    def _allocate_compute(self, env_states: list) -> list:[m
+[31m-[m
+[31m-        decisions = [][m
+[31m-        for i, vehicle in enumerate(self.vehicles):[m
+[31m-            state = env_states[i][m
+[31m-            u_crit = state['u_crit_t']       # U_crit(t)[m
+[31m-            bandwidth = state['bandwidth']   # B_i(t)[m
+[31m-            [m
+[31m-            # Constraint: c_i(t) <= 1 - U_crit(t)[m
+[31m-            compute_allocation_c = max(0.0, 1.0 - u_crit)[m
+[31m-            [m
+[31m-            # Constraint: e_i(t) <= rho_i * c_i(t)[m
+[31m-            local_epochs_e = int(np.floor(vehicle.rho * compute_allocation_c))[m
+[31m-            [m
+[31m-            decisions.append({[m
+[31m-                'vehicle': vehicle,[m
+[31m-                'state_u_crit': u_crit, [m
+[31m-                'state_bw': bandwidth,[m
+[31m-                'decision_c': compute_allocation_c, # c_i(t)[m
+[31m-                'decision_e': local_epochs_e, # e_i(t)[m
+[31m-                'decision_p': 0  # p_i(t)[m
+[31m-            })[m
+[31m-        return decisions[m
+[31m-[m
+[31m-    def _decide_communication(self, decisions: list):[m
+[31m-[m
+[31m-        # Sort vehicles by drift[m
+[31m-        decisions.sort(key=lambda x: x['vehicle'].current_drift, reverse=True)[m
+[31m-        [m
+[31m-        current_cell_load = 0.0[m
+[31m-        [m
+[31m-        for decision in decisions:[m
+[31m-            v = decision['vehicle'][m
+[31m-            drift_threshold = v.D_max * self.sync_threshold_ratio[m
+[31m-            [m
+[31m-            # If drift is large enough, attempt transmission[m
+[31m-            if v.current_drift > drift_threshold:[m
+[31m-                # Constraint: Sum(p_i * M_i) <= B_cell(t)[m
+[31m-                if current_cell_load + v.M <= self.cell_bandwidth:[m
+[31m-                    decision['decision_p'] = 1  # Execute transmission[m
+[31m-                    current_cell_load += v.M[m
+[31m-[m
+[31m-    def _calculate_costs_and_update_state(self, t: int, decisions: list):[m
+[31m-[m
+[31m-        total_net_cost, total_comp_cost, total_drift_cost = 0.0, 0.0, 0.0[m
+[31m-        [m
+[31m-        for d in decisions:[m
+[31m-            v = d['vehicle'][m
+[31m-            [m
+[31m-            # C_net(t) = p_i * (M_i / B_i) [m
+[31m-            cost_net = d['decision_p'] * (v.M / max(d['state_bw'], 0.1))[m
+[31m-            [m
+[31m-            # C_comp(t) = c_i * U_crit[m
+[31m-            cost_comp = d['decision_c'] * d['state_u_crit'][m
+[31m-            [m
+[31m-            # C_drift(t) = D_i(t)[m
+[31m-            cost_drift = v.current_drift[m
+[31m-            [m
+[31m-            total_net_cost += cost_net[m
+[31m-            total_comp_cost += cost_comp[m
+[31m-            total_drift_cost += cost_drift[m
+[31m-            [m
+[31m-[m
+[31m-            # D_i(t+1) = D_i(t) + a_i*e_i(t) - b_i*p_i(t)[m
+[31m-            new_drift = v.current_drift + (v.a * d['decision_e']) - (v.b * d['decision_p'])[m
+[31m-            [m
+[31m-            v.current_drift = max(0.0, min(new_drift, v.D_max))[m
+[31m-[m
+[31m-        # Total objective[m
+[31m-        total_cost = (self.alpha * total_net_cost) + \[m
+[31m-                     (self.beta * total_comp_cost) + \[m
+[31m-                     (self.gamma * total_drift_cost)[m
+[31m-[m
+[31m-        self.history.append({[m
+[31m-            'time': t,[m
+[31m-            'cost_net': total_net_cost,[m
+[31m-            'cost_comp': total_comp_cost,[m
+[31m-            'cost_drift': total_drift_cost,[m
+[31m-            'total_cost': total_cost[m
+[31m-        })[m
+[32m+[m[32m    def step(self):[m
+[32m+[m[32m        pass[m
+ [m
+[32m+[m[32m    def _calculate_global_costs(self, step_results):[m
+[32m+[m[32m        pass[m
+[32m+[m[41m    [m
+     def plot_history(self):[m
+[31m-        times = [entry['time'] for entry in self.history][m
+[31m-        drift_costs = [entry['cost_drift'] for entry in self.history][m
+[32m+[m[32m        pass[m
+[32m+[m
+ [m
+[31m-        plt.figure(figsize=(10, 6))[m
+[31m-        [m
+[31m-        plt.plot(times, drift_costs, label='Total Drift', color='crimson', linewidth=2)[m
+[31m-        [m
+[31m-        plt.title('System Drift Over Time', fontsize=14)[m
+[31m-        plt.xlabel('Time Step (t)', fontsize=12)[m
+[31m-        plt.ylabel('Aggregate Drift Cost', fontsize=12)[m
+[31m-        plt.grid(True, linestyle='--', alpha=0.7)[m
+[31m-        plt.legend()[m
+[31m-        [m
+[31m-        plt.tight_layout()[m
+[31m-        plt.show()[m
+ [m
+ [m
+ [m
+ [m
+ def run_simulation(df: pd.DataFrame, num_vehicles: int, num_samples: int):[m
+[32m+[m[32m    pass[m
+ [m
+[31m-    total_time_steps = int(num_samples / num_vehicles) [m
+[31m-    [m
+[31m-    # Init vehicles[m
+[31m-    vehicles = [Vehicle(vehicle_id=i) for i in range(num_vehicles)][m
+[31m-    [m
+[31m-    # Init Scheduler[m
+[31m-    scheduler = FLScheduler(vehicles, alpha=1.0, beta=0.5, gamma=2.0)[m
+[31m-    [m
+[31m-    print(f"Starting FL Scheduling Simulation for {total_time_steps} time steps...\n")[m
+[31m-    [m
+[31m-    for t in range(total_time_steps):[m
+[31m-        [m
+[31m-        # Gather environment states from the dataset for step t[m
+[31m-        env_states = [][m
+[31m-        for i in range(num_vehicles):[m
+[31m-            row_idx = (t * num_vehicles + i) % len(df)[m
+[31m-            row = df.iloc[row_idx] [m
+[31m-            [m
+[31m-            env_states.append({[m
+[31m-                'bandwidth': row['mec_channel_bw_mhz'],[m
+[31m-                'u_crit_t': row['u_crit_t'][m
+[31m-            })[m
+[31m-            [m
+[31m-        decisions = scheduler.step(t, env_states)[m
+[31m-        [m
+[31m-        # Print results[m
+[31m-        if t % 1000 == 0:[m
+[31m-            print(f"--- Time Step t={t} ---")[m
+[31m-            for d in decisions:[m
+[31m-                v_id = d['vehicle'].id[m
+[31m-                print(f"Vehicle {v_id} | Compute (c): {d['decision_c']:.2f} | Epochs (e): {d['decision_e']} "[m
+[31m-                      f"| Transmitted (p): {d['decision_p']} | New Drift: {d['vehicle'].current_drift:.1f}")[m
+[31m-            [m
+[31m-            current_cost = scheduler.history[-1]['total_cost'][m
+[31m-            print(f"> Total Cost for t={t}: {current_cost:.2f}\n")[m
+[31m-    scheduler.plot_history()        [m
+\ No newline at end of file[m
+[32m+[m[32mdef init_Flower():[m
+[32m+[m[32m    pass[m
+[32m+[m
+[32m+[m
+[32m+[m[32m# Action to take[m[41m [m
+[32m+[m[32mclass Action(Enum):[m
+[32m+[m[32m    CONTINUE = 1[m
+[32m+[m[32m    SYNC = 2[m
+[32m+[m[32m    WAIT = 3[m
+\ No newline at end of file[m
