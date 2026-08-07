@@ -1,7 +1,9 @@
 .venv/
-/src/__pycahce__/*
+/src/__pycache__/*
 .DS_Store
 *.log
 .idea
 .vscode
+.VSCodeCounter/
 /dataset
+*.png

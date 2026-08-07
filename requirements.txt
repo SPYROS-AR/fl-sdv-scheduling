@@ -1,5 +1,9 @@
-eclipse-sumo==1.27.0
-sumo-data==1.27.0
-sumolib==1.27.0
-traci==1.27.0
+pandas
 numpy
+matplotlib
+torch
+torchvision
+flwr
+flwr_datasets
+flwr[simulation]==1.33.0
+scipy
