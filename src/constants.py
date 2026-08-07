@@ -18,7 +18,7 @@ DIRICHLET_ALPHA = 0.2
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # CNN
-
+NUM_ROUNDS = 40
 # Conv2d: in_channels, out_channels, kernel_size
 LAYER_1 = [3, 8, 3]  
 LAYER_2 = [8, 16, 3]

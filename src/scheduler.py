@@ -5,17 +5,21 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, ToTensor, Normalize
 import matplotlib.pyplot as plt
-
 from data_setup import setup_dataset
 from client import FLVehicle
 from server import DynamicFLStrategy
-
 import logging
+import datasets
+from constants import NUM_ROUNDS
+# Silence HuggingFace local offline cache notifications
+datasets.utils.logging.set_verbosity_error()
+
 logging.basicConfig(
     level=logging.INFO,
     filename='results.log',
     filemode='a'
 )
+
 # Basic transforms for CIFAR-10 images
 pytorch_transforms = Compose([
     ToTensor(),
@@ -42,9 +46,8 @@ def run_simulation(df: pd.DataFrame, num_vehicles: int, num_samples: int):
         print(f" STARTING EXPERIMENT: {exp}")
         print(f"========================================\n")
         
-
         def client_fn(context: Context) -> fl.client.Client:
-            cid = str(context.node_config["partition-id"]) 
+            cid = str(context.node_config["partition-id"])
             
             partition = fds.load_partition(int(cid), "train")
             split = partition.train_test_split(test_size=0.15, seed=42)
@@ -63,7 +66,8 @@ def run_simulation(df: pd.DataFrame, num_vehicles: int, num_samples: int):
                 model_size_mb=50.0,
                 epochs_per_compute=10 
             )
-            vehicle.mode = exp 
+            vehicle.mode = exp
+            
             return vehicle.to_client()
 
         strategy = DynamicFLStrategy(
@@ -77,28 +81,25 @@ def run_simulation(df: pd.DataFrame, num_vehicles: int, num_samples: int):
         history = fl.simulation.start_simulation(
             client_fn=client_fn,
             num_clients=num_vehicles,
-            config=fl.server.ServerConfig(num_rounds=40),
+            config=fl.server.ServerConfig(num_rounds=NUM_ROUNDS),
             strategy=strategy,
             client_resources={"num_cpus": 1, "num_gpus": 0.0},
         )
         
-        # Save the metrics for the final graph
-        total_mbs = strategy.total_mbs_sent
-        
-        # Extract loss values from the returned history object
+        # Save the mathematically aligned metrics for the final graph
         losses = [val[1] for val in history.losses_distributed]
         
         all_results[exp] = {
-            "mbs": total_mbs,
+            "mbs": strategy.total_c_net,
             "losses": losses,
-            "interference": strategy.total_interference
+            "interference": strategy.total_c_comp
         }
 
     print("\nAll experiments finished! Generating the plot...")
     logging.info(all_results)
+    
     plot_history(all_results)
     plot_interference(all_results)
-
 
 def plot_history(all_results):
     plt.figure(figsize=(10, 6))
@@ -125,28 +126,27 @@ def plot_history(all_results):
         losses = data["losses"]
         total_mbs = data["mbs"]
         
-        # Distribute total MBs evenly across rounds for the X-axis mapping
         rounds = len(losses)
         mbs_per_round = total_mbs / rounds if rounds > 0 else 0
         x_axis_mbs = [mbs_per_round * (i+1) for i in range(rounds)]
         
-        # Now labels[exp] will successfully look up the string key
         plt.plot(x_axis_mbs, losses, marker='o', color=colors[exp], label=labels[exp])
 
-    plt.title("Validation Loss vs Total Megabytes Sent")
-    plt.xlabel("Total Data Sent (MBs)")
+    plt.title("Validation Loss vs Total Network Cost")
+    plt.xlabel("Total Network Cost")
     plt.ylabel("Validation Loss")
     plt.grid(True)
     plt.legend()
     
     plt.savefig("results_graph.png")
     print("Graph saved as 'results_graph.png'!")
+
 def plot_interference(all_results):
     plt.figure(figsize=(8, 5))
     
     colors_map = {"dynamic": "blue", "fixed_1": "red", "fixed_3": "purple", "fixed_5": "green", "fixed_10": "orange", "fixed_20": "cyan"}
-    labels_map = {"dynamic": "Proposed (Dynamic)", "fixed_1": "Fixed: 1 Epoch", "fixed_3": "Fixed: 3 Epochs",
-                   "fixed_5": "Fixed: 5 Epochs", "fixed_10": "Fixed: 10 Epochs", "fixed_20": "Fixed: 20 Epochs"}
+    labels_map = {"dynamic": "Proposed (Dynamic)", "fixed_1": "Fixed: 1 Epoch", "fixed_3": "Fixed: 3 Epochs", 
+                  "fixed_5": "Fixed: 5 Epochs", "fixed_10": "Fixed: 10 Epochs", "fixed_20": "Fixed: 20 Epochs"}
     
     experiments = list(all_results.keys())
     interferences = [all_results[exp]["interference"] for exp in experiments]

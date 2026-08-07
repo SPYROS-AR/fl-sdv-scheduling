@@ -1,18 +1,12 @@
-import subprocess
 import os
 import sys
+import subprocess
 import flwr_datasets
-
 from constants import DATASET, NUM_SAMPLES, NUM_VEHICLES, DIRICHLET_ALPHA
-
-
-import os
-import sys
-import subprocess
 
 def clone_and_run_dataset():
     repo_url = "https://github.com/icsa-hua/CLOUDNET2026-QoS-Offloading.git"
-    target_folder = "dataset"      
+    target_folder = "dataset"
     
     if not os.path.exists(target_folder):
         print(f"Cloning repository from {repo_url} into '{target_folder}'...")
@@ -36,7 +30,7 @@ def clone_and_run_dataset():
     except subprocess.CalledProcessError as e:
         print(f"Failed to install dependencies: {e}")
         return
-
+        
     module_name = "src.dataset.generate"
     print("Generating dataset...")
     try:
@@ -46,22 +40,23 @@ def clone_and_run_dataset():
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT
-            )
-        
+        )
         print("Dataset generation successful!")
     except subprocess.CalledProcessError as e:
-        print(f"Failed to generate dataset. See the traceback above for the exact reason.")
-        
-        
-def setup_dataset()-> flwr_datasets.FederatedDataset:
+        print("Failed to generate dataset. See the traceback above for the exact reason.")
+
+def setup_dataset() -> flwr_datasets.FederatedDataset:
     """
-    Sets up the federated dataset for the vehicles using a Dirichlet partitioning strategy
+    Sets up the federated dataset for the vehicles using a Dirichlet partitioning strategy.
     """
     partitioner = flwr_datasets.partitioner.DirichletPartitioner(
-            num_partitions=NUM_VEHICLES,
-            partition_by="label",
-            alpha=DIRICHLET_ALPHA,
-            min_partition_size=10
-        )
+        num_partitions=NUM_VEHICLES,
+        partition_by="label",
+        alpha=DIRICHLET_ALPHA,
+        min_partition_size=10
+    )
     
-    return flwr_datasets.FederatedDataset(dataset=DATASET, partitioners={"train": partitioner})
+    return flwr_datasets.FederatedDataset(
+        dataset=DATASET, 
+        partitioners={"train": partitioner}
+    )

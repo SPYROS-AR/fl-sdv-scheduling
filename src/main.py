@@ -3,9 +3,6 @@ from data_processing import load_and_clean_dataset
 from scheduler import run_simulation
 from constants import NUM_VEHICLES, NUM_SAMPLES
 
-import os
-
-os.environ["HF_DATASETS_OFFLINE"] = "1" 
 
 def main():
     print("Starting dataset setup and simulation...")

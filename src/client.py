@@ -6,14 +6,14 @@ from torch.utils.data import DataLoader
 from collections import OrderedDict
 import numpy as np
 import scipy.optimize
-
+import warnings
+from scipy.optimize import OptimizeWarning
 from constants import ALPHA, BETA, GAMMA, DELTA, DEVICE
 import model
 
 class FLVehicle(fl.client.NumPyClient):
     def __init__(self, partition_id: int, trainloader: DataLoader, valloader: DataLoader, 
                  model_size_mb: float = 50.0, epochs_per_compute: int = 10):
-        # System model
         self.id = partition_id
         self.trainloader = trainloader
         self.valloader = valloader
@@ -25,7 +25,6 @@ class FLVehicle(fl.client.NumPyClient):
         self.gamma = GAMMA
         self.delta = DELTA
         
-        # PyTorch Setup
         self.model = model.load_model().to(DEVICE)
         self.criterion = nn.CrossEntropyLoss()
 
@@ -36,106 +35,104 @@ class FLVehicle(fl.client.NumPyClient):
         params_dict = zip(self.model.state_dict().keys(), parameters)
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
         self.model.load_state_dict(state_dict, strict=True)
-
         return [torch.tensor(v).to(DEVICE) for v in parameters]
 
     def fit(self, parameters, config):
         global_weights = self.set_parameters(parameters)
         optimizer = torch.optim.SGD(self.model.parameters(), lr=0.01, momentum=0.9)
         
-        # Read the dynamic variables from the server
+        # System State S_i(t)
         u_crit = config.get("u_crit", 0.2)
         bandwidth = config.get("bandwidth", 10.0)
+        
         tau_continue = config.get("tau_continue", 0.1)
         drift_threshold = config.get("drift_threshold", 5.0)
         gain_threshold = config.get("gain_threshold", 0.01)
         bw_threshold = config.get("bw_threshold", 30.0)
-
+        
         max_c_i = max(0.0, 1.0 - u_crit)
-
-        # Fixed policy
-        if hasattr(self, 'mode') and self.mode.startswith("fixed"):
-            epochs_to_run = int(self.mode.split("_")[1])
-            for _ in range(epochs_to_run):
-                self._train_epoch(optimizer)
-            
-            drift = self._compute_drift(global_weights)
-            required_cpu = epochs_to_run / self.rho
-            interference = required_cpu * u_crit 
-            
-            return self.get_parameters(config={}), len(self.trainloader.dataset), {
-                "status": "SYNC", 
-                "epochs_trained": epochs_to_run, 
-                "drift": drift,
-                "interference": interference
+        
+        if max_c_i < (1.0 / self.rho):
+            return parameters, 0, {
+                "status": "WAIT", "epochs_trained": 0,
+                "c_comp": 0.0, "c_net": 0.0, "c_drift": 0.0, "gain": 0.0
             }
 
         # Dynamic Policy
         loss_history = []
         epoch = 0
-        status = "CONTINUE"
+        drift = 0.0
         
         initial_loss = self._validate()
         loss_history.append(initial_loss)
-
+        
         while True:
-            required_cpu_for_next_epoch = (epoch + 1.0) / self.rho
-            if required_cpu_for_next_epoch > max_c_i:
-                status = "SYNC"
+            # Training-Compute Coupling
+            required_c_i = (epoch + 1.0) / self.rho
+            if required_c_i > max_c_i:
                 break
-
+                
             self._train_epoch(optimizer)
             epoch += 1
             
             current_loss = self._validate()
             smoothed_loss = 0.3 * current_loss + 0.7 * loss_history[-1]
             loss_history.append(smoothed_loss)
-
+            
             if epoch < 2:
                 continue
-
             if epoch >= self.rho:
-                status = "SYNC"
                 break
                 
             predicted_next_loss = self._predict_loss(loss_history)
             expected_gain = loss_history[-1] - predicted_next_loss
             drift = self._compute_drift(global_weights)
             
+            # Local Utility = \delta * G_i(t) - \gamma * D_i(t)
             utility = self._compute_utility(expected_gain, drift)
             
-            if drift > drift_threshold or expected_gain < gain_threshold:
-                status = "SYNC"
+            # Drift Stability Constraint and utility drop
+            if (drift > drift_threshold) or (expected_gain < gain_threshold) or (utility < tau_continue):
                 break
                 
-            if bandwidth < bw_threshold and utility < tau_continue:
-                status = "WAIT"
-                break
-
-        # Compute final interference
-        final_cpu_used = epoch / self.rho
-        interference = final_cpu_used * u_crit
-
-        if status == "WAIT" or epoch == 0:
-            return parameters, 0, {"status": "WAIT", "epochs_trained": epoch, "drift": 0.0, "interference": 0.0}
+        if bandwidth >= bw_threshold:
+            status = "SYNC"
+            p_i = 1.0
+        else:
+            status = "CONTINUE"
+            p_i = 0.0
+            
+        c_i = epoch / self.rho 
+        c_comp = c_i * u_crit 
+        c_net = p_i * (self.M / max(0.1, bandwidth))
+        c_drift = self._compute_drift(global_weights) if epoch > 0 else 0.0
+        gain = initial_loss - current_loss if epoch > 0 else 0.0
         
-        return self.get_parameters(config={}), len(self.trainloader.dataset), {
-            "status": "SYNC", 
-            "epochs_trained": epoch, 
-            "drift": drift,
-            "interference": interference
+        metrics = {
+            "status": status,
+            "epochs_trained": epoch,
+            "c_comp": c_comp,
+            "c_net": c_net,
+            "c_drift": c_drift,
+            "gain": gain
         }
+        
+        if status == "CONTINUE":
+            # True CONTINUE (e_i > 0, p_i = 0)
+            return parameters, 0, metrics
+            
+        # SYNC (p_i = 1)
+        return self.get_parameters(config={}), len(self.trainloader.dataset), metrics
 
     def evaluate(self, parameters, config):
         self.set_parameters(parameters)
         loss = self._validate()
-        # Return loss
         return loss, len(self.valloader.dataset), {"loss": loss}
 
     # Helpers
     def _train_epoch(self, optimizer):
         self.model.train()
-        for batch in self.valloader:
+        for batch in self.trainloader:
             images = batch["img"].to(DEVICE)
             labels = batch["label"].to(DEVICE)
             optimizer.zero_grad()
@@ -160,15 +157,19 @@ class FLVehicle(fl.client.NumPyClient):
         return L_inf + alpha * np.exp(-beta * x)
 
     def _predict_loss(self, loss_history):
-        if len(loss_history) < 2:
+        if len(loss_history) < 3:
             return loss_history[-1]
+            
         x_data = np.arange(1, len(loss_history) + 1)
         y_data = np.array(loss_history)
+        
         try:
-            popt, _ = scipy.optimize.curve_fit(self._exp_func, x_data, y_data, maxfev=5000)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", OptimizeWarning)
+                popt, _ = scipy.optimize.curve_fit(self._exp_func, x_data, y_data, maxfev=5000)
+                
             next_epoch = len(loss_history) + 1
-            predicted_loss = self._exp_func(next_epoch, *popt)
-            return predicted_loss
+            return self._exp_func(next_epoch, *popt)
         except RuntimeError:
             return y_data[-1]
 
