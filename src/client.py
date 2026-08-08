@@ -52,6 +52,31 @@ class FLVehicle(fl.client.NumPyClient):
         
         max_c_i = max(0.0, 1.0 - u_crit)
         
+        # Fixed Policy
+        if hasattr(self, 'mode') and self.mode.startswith("fixed"):
+            epochs_to_run = int(self.mode.split("_")[1])
+            
+            # Force train for the exact number of fixed epochs
+            for _ in range(epochs_to_run):
+                self._train_epoch(optimizer)
+                
+            c_i = epochs_to_run / self.rho
+            c_comp = c_i * u_crit
+            c_net = 1.0 * (self.M / max(0.1, bandwidth))
+            c_drift = self._compute_drift(global_weights)
+            
+            metrics = {
+                "status": "SYNC",
+                "epochs_trained": epochs_to_run,
+                "c_comp": c_comp,
+                "c_net": c_net,
+                "c_drift": c_drift,
+                "gain": 0.0
+            }
+            return self.get_parameters(config={}), len(self.trainloader.dataset), metrics
+        # ---------------------------------------------------------
+
+        # WAIT (e_i = 0, p_i = 0
         if max_c_i < (1.0 / self.rho):
             return parameters, 0, {
                 "status": "WAIT", "epochs_trained": 0,
@@ -118,7 +143,7 @@ class FLVehicle(fl.client.NumPyClient):
         }
         
         if status == "CONTINUE":
-            # True CONTINUE (e_i > 0, p_i = 0)
+            # e_i > 0, p_i = 0)
             return parameters, 0, metrics
             
         # SYNC (p_i = 1)
