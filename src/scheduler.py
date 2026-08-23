@@ -77,13 +77,13 @@ def run_simulation(df: pd.DataFrame, num_vehicles: int, num_samples: int):
             min_fit_clients=num_vehicles,
             min_available_clients=num_vehicles,
         )
-        
+        gpus_per_client = 0.1 if torch.cuda.is_available() else 0.0
         history = fl.simulation.start_simulation(
             client_fn=client_fn,
             num_clients=num_vehicles,
             config=fl.server.ServerConfig(num_rounds=NUM_ROUNDS),
             strategy=strategy,
-            client_resources={"num_cpus": 1, "num_gpus": 0.0},
+            client_resources={"num_cpus": 1, "num_gpus":gpus_per_client},
         )
         
         # Save the mathematically aligned metrics for the final graph
