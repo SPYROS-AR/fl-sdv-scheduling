@@ -4,10 +4,19 @@ from flwr.server.client_proxy import ClientProxy
 from typing import List, Tuple, Dict, Optional, Union
 import pandas as pd
 import random
+import math
+
+from constants import MAX_ALLOWED_DRIFT, TOTAL_BANDWIDTH
 
 class DynamicFLStrategy(fl.server.strategy.FedAvg):
-    def __init__(self, df_network: pd.DataFrame, *args, **kwargs):
+    def __init__(self, df_network: pd.DataFrame, alpha=0.002, beta=1.0, gamma=0.05, delta=20.0, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.df_network = df_network
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.delta = delta
+        
         self.df_network = df_network
         
         # Global Optimization Objective Metrics
@@ -15,15 +24,13 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         self.total_c_comp = 0.0
         self.total_c_drift = 0.0
         self.total_gain = 0.0
+        self.total_utility = 0.0 # Global Utility
         
         # Operational States Tracking
         self.total_syncs = 0
         self.total_continues = 0
         self.total_waits = 0
         self.total_dropped = 0
-        
-        # Network Capacity Constraint: B^{cell}
-        self.B_cell_max = 400.0  
 
     def configure_fit(
         self, server_round: int, parameters: Parameters, client_manager: fl.server.client_manager.ClientManager
@@ -40,7 +47,7 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
             config_dict["bandwidth"] = float(sample["effective_throughput_mbps"])
             
             config_dict["tau_continue"] = 0.1     
-            config_dict["drift_threshold"] = 5.0  
+            config_dict["drift_threshold"] = MAX_ALLOWED_DRIFT
             config_dict["gain_threshold"] = 0.01  
             config_dict["bw_threshold"] = 30.0
             
@@ -60,13 +67,14 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         round_syncs, round_continues, round_waits, round_dropped = 0, 0, 0, 0
         round_c_net, round_c_comp, round_c_drift, round_gain = 0.0, 0.0, 0.0, 0.0
         
+        current_B_cell_max = TOTAL_BANDWIDTH * (0.8 + 0.2 * math.sin(server_round))
+        
         random.shuffle(results)
         
         for client, fit_res in results:
             metrics = fit_res.metrics
             status = metrics.get("status", "WAIT")
             
-            # Interference and Gain apply to both SYNC and CONTINUE
             round_c_comp += metrics.get("c_comp", 0.0)
             round_gain += metrics.get("gain", 0.0)
             
@@ -78,8 +86,7 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
                     round_continues += 1
                     self.total_continues += 1
             else:
-                # Client decided to SYNC (p_i = 1). Verify Network Capacity Constraint
-                if current_bw_used + model_size_mb <= self.B_cell_max:
+                if current_bw_used + model_size_mb <= current_B_cell_max:
                     valid_results.append((client, fit_res))
                     round_syncs += 1
                     self.total_syncs += 1
@@ -91,14 +98,17 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
                     round_dropped += 1
                     self.total_dropped += 1
                     
-        # Update Global Metrics
+        # Global Optimization Objective
+		round_utility = (self.delta * round_gain) - (self.alpha * round_c_net) - (self.beta * round_c_comp) - (self.gamma * round_c_drift)                    
         self.total_c_comp += round_c_comp
         self.total_c_net += round_c_net
         self.total_c_drift += round_c_drift
         self.total_gain += round_gain
+        self.total_utility += round_utility  # Accumulate global utility
         
         print(f"\n[Round {server_round}] SYNC: {round_syncs} | CONTINUE: {round_continues} | WAIT: {round_waits} | DROPPED: {round_dropped}")
-        print(f"[Round {server_round}] Cell Load: {current_bw_used}/{self.B_cell_max} MB")
+        print(f"[Round {server_round}] Cell Load: {current_bw_used:.1f}/{current_B_cell_max:.1f} MB")
+        print(f"[Round {server_round}] Utility: {round_utility:.4f} | Drift: {round_c_drift:.4f}")
         
         if not valid_results:
             return None, {}
