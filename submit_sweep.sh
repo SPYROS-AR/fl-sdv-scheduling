@@ -27,7 +27,7 @@ for i in $(seq $START_LINE $END_LINE); do
     echo "  -> Launching Sub-task ${i} in background: A=$ALPHA B=$BETA G=$GAMMA D=$DELTA"
     
     # Run worker in the background
-    python sweep_worker.py \
+    python src/sweep_worker.py \
         --alpha $ALPHA \
         --beta $BETA \
         --gamma $GAMMA \
@@ -36,8 +36,6 @@ for i in $(seq $START_LINE $END_LINE); do
         
 done
 
-# CRITICAL: The 'wait' command forces Slurm to hold the GPU open until 
-# all 4 background processes (&) have finished executing.
 wait
 
 echo "All 4 concurrent experiments for Array Task ${SLURM_ARRAY_TASK_ID} have finished."

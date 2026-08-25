@@ -1,7 +1,6 @@
 import argparse
 import json
-from data_setup import clone_and_run_dataset
-from data_processing import load_and_clean_dataset
+import pandas as pd
 from scheduler import run_simulation
 from constants import NUM_VEHICLES, NUM_SAMPLES
 
@@ -18,8 +17,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     # Ensure dataset exists before workers start pulling
-    clone_and_run_dataset()
-    df = load_and_clean_dataset("dataset/data/network_dataset.csv")
+    df = pd.read_csv("dataset/data/cleaned_network_dataset.csv")
     
     # Run only the 'dynamic' policy to evaluate this specific weight combination
     results = run_simulation(
