@@ -49,7 +49,7 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
             config_dict["tau_continue"] = 0.1     
             config_dict["drift_threshold"] = MAX_ALLOWED_DRIFT
             config_dict["gain_threshold"] = 0.01  
-            config_dict["bw_threshold"] = 30.0
+            config_dict["bw_threshold"] = 20.0
             
             new_fit_ins = FitIns(parameters=fit_ins.parameters, config=config_dict)
             custom_configs.append((client_proxy, new_fit_ins))
@@ -99,7 +99,7 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
                     self.total_dropped += 1
                     
         # Global Optimization Objective
-		round_utility = (self.delta * round_gain) - (self.alpha * round_c_net) - (self.beta * round_c_comp) - (self.gamma * round_c_drift)                    
+        round_utility = (self.delta * round_gain) - (self.alpha * round_c_net) - (self.beta * round_c_comp) - (self.gamma * round_c_drift)                    
         self.total_c_comp += round_c_comp
         self.total_c_net += round_c_net
         self.total_c_drift += round_c_drift

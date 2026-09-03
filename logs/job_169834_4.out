@@ -1,0 +1,1975 @@
+Slurm Array Task 4 running on hpc02
+File has 64 lines. Assigned lines 49 to 64.
+  -> Launching Sub-task 49 in background: A=0.0015 B=1.83 G=0.066 D=28.3
+  -> Launching Sub-task 50 in background: A=0.0028 B=0.64 G=0.019 D=19.5
+  -> Launching Sub-task 51 in background: A=0.003 B=0.99 G=0.09 D=19.1
+  -> Launching Sub-task 52 in background: A=0.0022 B=1.32 G=0.062 D=22.6
+Waiting for current batch of 4 workers to finish...
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 289.0296 | Drift: 62.4548
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 264.8926 | Drift: 62.2187
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 235.2755 | Drift: 28.8537
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 286.6421 | Drift: 34.4926
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 217.7012 | Drift: 4.8529
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 1220.8707 | Drift: 44.3567
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 241.4709 | Drift: 21.8829
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 225.5843 | Drift: 23.7886
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 431.7543 | Drift: 51.7382
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 218.9715 | Drift: 16.8880
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 454.8477 | Drift: 55.6395
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 254.8282 | Drift: 50.4262
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 176.7247 | Drift: 16.8895
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 1045.1985 | Drift: 3.3576
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 1287.2418 | Drift: 45.9498
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 221.4819 | Drift: 33.4214
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 304.9341 | Drift: 49.0299
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 259.4107 | Drift: 20.9646
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 420.1916 | Drift: 41.1085
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 278.6385 | Drift: 37.1881
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 193.4861 | Drift: 33.8490
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 271.9431 | Drift: 31.6912
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 317.4034 | Drift: 50.4561
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 266.1485 | Drift: 39.1273
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 323.6093 | Drift: 60.7998
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 166.3628 | Drift: 33.6510
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 328.0887 | Drift: 17.0919
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 1005.3324 | Drift: 13.3778
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 428.3248 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 445.1769 | Drift: 30.9795
+Worker 51 finished successfully. Saved to results_sweep_51.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 431.1313 | Drift: 63.6224
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 374.3964 | Drift: 76.4653
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 224.6940 | Drift: 41.5335
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 240.2939 | Drift: 29.3664
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 542.2215 | Drift: 5.8465
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 1131.7311 | Drift: 53.6788
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 449.1981 | Drift: 32.7118
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 535.2215 | Drift: 18.2810
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 735.2159 | Drift: 42.0586
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 416.5714 | Drift: 31.0935
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 580.7297 | Drift: 53.4450
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 299.0726 | Drift: 55.4041
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 302.5474 | Drift: 18.0071
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 897.2022 | Drift: 10.2040
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 1959.4921 | Drift: 66.4879
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 535.3836 | Drift: 43.6279
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 413.9609 | Drift: 58.1650
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 250.5345 | Drift: 15.6695
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 1121.3988 | Drift: 47.2754
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 207.4429 | Drift: 33.6914
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 795.4085 | Drift: 37.9484
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 442.1179 | Drift: 37.8552
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 526.0654 | Drift: 52.3301
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 399.5518 | Drift: 42.3172
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 598.4699 | Drift: 64.5662
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 295.4930 | Drift: 43.7506
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 761.3930 | Drift: 14.7572
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 1073.5631 | Drift: 21.1486
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 1463.0780 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 1461.8149 | Drift: 42.0261
+Worker 49 finished successfully. Saved to results_sweep_49.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 335.3875 | Drift: 52.4482
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 309.6039 | Drift: 73.7192
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 186.8575 | Drift: 36.8393
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 230.1657 | Drift: 37.5941
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 302.4217 | Drift: 10.1457
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 1236.2899 | Drift: 46.7159
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 267.8511 | Drift: 38.1110
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 281.0398 | Drift: 19.5507
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 663.4118 | Drift: 59.7304
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 225.8098 | Drift: 29.9465
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 329.7022 | Drift: 55.0756
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 246.9945 | Drift: 53.8776
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 232.6125 | Drift: 18.9303
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 356.7862 | Drift: 12.0233
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 1416.1533 | Drift: 68.2751
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 251.7290 | Drift: 34.2541
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 340.3534 | Drift: 44.9907
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 240.0224 | Drift: 16.0480
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 1167.7749 | Drift: 48.7007
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 291.6395 | Drift: 36.6798
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 430.5427 | Drift: 40.2116
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 279.9884 | Drift: 32.9391
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 655.7623 | Drift: 55.3529
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 347.0693 | Drift: 34.1717
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 328.4623 | Drift: 66.3697
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 289.3255 | Drift: 45.6999
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 304.7827 | Drift: 15.3862
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 667.8242 | Drift: 17.8125
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 558.2609 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 559.4660 | Drift: 33.3576
+Worker 52 finished successfully. Saved to results_sweep_52.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 301.8817 | Drift: 62.9982
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 260.3497 | Drift: 77.5327
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 180.1581 | Drift: 47.1307
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 134.7524 | Drift: 35.8920
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 367.6657 | Drift: 9.9589
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 955.2495 | Drift: 57.9359
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 225.4388 | Drift: 29.9816
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 314.7101 | Drift: 17.3714
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 853.6847 | Drift: 63.4157
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 198.5716 | Drift: 23.0058
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 330.9679 | Drift: 63.8815
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 236.7261 | Drift: 59.9400
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 204.0541 | Drift: 18.4946
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 638.7013 | Drift: 4.3273
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 978.1577 | Drift: 48.8059
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 424.4601 | Drift: 49.5950
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 237.0839 | Drift: 47.6630
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 300.1345 | Drift: 16.6043
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 1021.8481 | Drift: 59.5515
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 372.6782 | Drift: 34.7502
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 401.0470 | Drift: 43.9487
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 245.4009 | Drift: 32.3606
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 377.4170 | Drift: 49.5268
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 260.1160 | Drift: 35.4950
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 329.9626 | Drift: 62.8958
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 186.8371 | Drift: 38.9339
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 268.8768 | Drift: 15.4232
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 853.5439 | Drift: 24.2055
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 428.2731 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 411.2140 | Drift: 40.3114
+Worker 50 finished successfully. Saved to results_sweep_50.json
+  -> Launching Sub-task 53 in background: A=0.0091 B=1.74 G=0.065 D=28.4
+  -> Launching Sub-task 54 in background: A=0.0049 B=0.69 G=0.016 D=22.5
+  -> Launching Sub-task 55 in background: A=0.0055 B=1.87 G=0.072 D=13.2
+  -> Launching Sub-task 56 in background: A=0.0038 B=1.3 G=0.028 D=26.9
+Waiting for current batch of 4 workers to finish...
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 199.8963 | Drift: 60.9268
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 174.7833 | Drift: 67.2264
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 114.6142 | Drift: 34.2037
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 140.3189 | Drift: 27.1432
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 296.3090 | Drift: 8.4708
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 534.6965 | Drift: 39.6521
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 124.6912 | Drift: 21.6744
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 190.8851 | Drift: 10.6682
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 360.2728 | Drift: 45.7994
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 204.2605 | Drift: 30.6933
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 176.7123 | Drift: 59.4988
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 114.1776 | Drift: 54.7120
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 88.8188 | Drift: 18.1223
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 584.2566 | Drift: 12.9092
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 613.3984 | Drift: 54.3299
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 184.8546 | Drift: 36.5137
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 135.9293 | Drift: 39.6719
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 152.7978 | Drift: 13.4752
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 453.9149 | Drift: 52.7379
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 137.3643 | Drift: 30.5936
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 172.8666 | Drift: 27.7361
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 169.4621 | Drift: 38.1855
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 261.2052 | Drift: 52.7442
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 110.1639 | Drift: 36.9020
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 227.2084 | Drift: 53.8160
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 154.3385 | Drift: 33.7601
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 146.2604 | Drift: 17.1389
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 344.2866 | Drift: 18.6591
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 690.1141 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 685.0480 | Drift: 47.4672
+Worker 55 finished successfully. Saved to results_sweep_55.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 433.4600 | Drift: 54.6953
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 479.0696 | Drift: 77.0679
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 250.1863 | Drift: 47.7901
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 491.1130 | Drift: 31.0124
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 400.8888 | Drift: 12.8230
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 1446.2738 | Drift: 43.0815
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 423.4787 | Drift: 26.6681
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 755.9728 | Drift: 19.3364
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 693.6663 | Drift: 47.3833
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 229.6322 | Drift: 21.9710
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 769.7645 | Drift: 64.5129
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 377.3798 | Drift: 51.8561
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 443.4162 | Drift: 20.2862
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 1640.8766 | Drift: 10.7189
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 2083.8571 | Drift: 62.1719
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 261.7769 | Drift: 47.1203
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 263.3219 | Drift: 50.2673
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 374.3625 | Drift: 18.0282
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 912.7053 | Drift: 47.9925
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 528.3618 | Drift: 28.8809
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 551.2620 | Drift: 43.0446
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 491.1486 | Drift: 36.6852
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 539.9132 | Drift: 56.8093
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 311.9916 | Drift: 45.4322
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 472.9869 | Drift: 67.9770
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 311.3165 | Drift: 40.3851
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 575.4639 | Drift: 16.0302
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 973.1716 | Drift: 19.7297
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 877.8295 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 868.9167 | Drift: 43.4435
+Worker 53 finished successfully. Saved to results_sweep_53.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 413.7520 | Drift: 52.2714
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 361.2799 | Drift: 74.0519
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 224.6909 | Drift: 53.2473
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 169.6326 | Drift: 23.0495
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 490.9908 | Drift: 14.0335
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 1525.8127 | Drift: 48.3319
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 276.0154 | Drift: 31.6449
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 490.9042 | Drift: 13.9474
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 767.9539 | Drift: 48.2688
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 432.1552 | Drift: 26.9645
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 673.3017 | Drift: 64.0910
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 287.7779 | Drift: 51.1450
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 432.7254 | Drift: 16.3493
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 1169.6576 | Drift: 10.2318
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 1862.3988 | Drift: 56.8837
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 225.1234 | Drift: 39.1569
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 356.0892 | Drift: 40.8637
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 273.4847 | Drift: 18.8827
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 1528.7194 | Drift: 50.4621
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 528.3289 | Drift: 41.8440
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 463.2653 | Drift: 35.6251
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 409.6597 | Drift: 31.0907
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 513.1571 | Drift: 50.4426
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 328.2075 | Drift: 41.6522
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 404.9909 | Drift: 57.4523
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 342.2933 | Drift: 40.6140
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 385.6310 | Drift: 15.1191
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 1607.7430 | Drift: 14.7261
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 429.8531 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 448.3259 | Drift: 38.1209
+Worker 56 finished successfully. Saved to results_sweep_56.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 346.3038 | Drift: 54.5191
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 319.7032 | Drift: 77.2196
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 200.2170 | Drift: 57.3769
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 238.8942 | Drift: 29.6931
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 613.4277 | Drift: 15.1221
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 1055.7721 | Drift: 42.8000
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 296.9114 | Drift: 34.7686
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 313.2823 | Drift: 13.9821
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 869.0982 | Drift: 65.5332
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 216.2212 | Drift: 32.7806
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 337.0197 | Drift: 49.3247
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 304.7618 | Drift: 59.7161
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 187.0289 | Drift: 15.6204
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 1167.3242 | Drift: 13.7109
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 1222.4288 | Drift: 64.8744
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 181.7187 | Drift: 37.3465
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 389.3468 | Drift: 49.5643
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 238.0519 | Drift: 18.0014
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 512.1407 | Drift: 44.9078
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 311.3952 | Drift: 39.0799
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 298.2534 | Drift: 41.4292
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 224.8028 | Drift: 41.0957
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 458.7390 | Drift: 57.5065
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 249.5500 | Drift: 48.7636
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 451.0077 | Drift: 75.6695
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 266.5593 | Drift: 46.9191
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 332.7837 | Drift: 16.3679
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 909.4152 | Drift: 18.2289
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 422.2878 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 405.7116 | Drift: 43.4127
+Worker 54 finished successfully. Saved to results_sweep_54.json
+  -> Launching Sub-task 57 in background: A=0.0037 B=0.62 G=0.067 D=23.4
+  -> Launching Sub-task 58 in background: A=0.0039 B=1.69 G=0.054 D=22.5
+  -> Launching Sub-task 59 in background: A=0.0063 B=1.88 G=0.033 D=29.2
+  -> Launching Sub-task 60 in background: A=0.0068 B=0.57 G=0.077 D=10.5
+Waiting for current batch of 4 workers to finish...
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 155.4693 | Drift: 57.8413
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 128.6563 | Drift: 61.9635
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 118.8699 | Drift: 31.7345
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 141.4125 | Drift: 29.2042
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 110.2862 | Drift: 8.7084
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 318.1575 | Drift: 35.9106
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 109.6155 | Drift: 24.2740
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 113.1462 | Drift: 8.6560
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 132.4183 | Drift: 39.6753
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 128.9943 | Drift: 23.7048
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 114.9121 | Drift: 49.3524
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 89.2854 | Drift: 47.6059
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 119.5771 | Drift: 14.8396
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 146.2225 | Drift: 5.0259
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 287.3023 | Drift: 51.5396
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 86.3586 | Drift: 25.4060
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 140.9244 | Drift: 38.1803
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 86.7287 | Drift: 12.5881
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 446.6687 | Drift: 48.0056
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 207.9826 | Drift: 37.7320
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 130.6053 | Drift: 34.6370
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 170.5606 | Drift: 36.5184
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 171.4700 | Drift: 45.7469
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 120.5255 | Drift: 24.8176
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 167.6856 | Drift: 65.5773
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 94.4068 | Drift: 35.4024
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 141.4214 | Drift: 13.1552
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 284.3662 | Drift: 13.1583
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 487.3353 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 482.2492 | Drift: 43.4700
+Worker 60 finished successfully. Saved to results_sweep_60.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 332.4648 | Drift: 46.1257
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 292.2963 | Drift: 76.0587
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 192.3730 | Drift: 54.8810
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 186.4950 | Drift: 23.1658
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 299.6063 | Drift: 8.0023
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 1003.9126 | Drift: 42.5878
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 361.8762 | Drift: 35.9393
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 342.5094 | Drift: 17.3755
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 1053.6252 | Drift: 55.7794
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 248.4749 | Drift: 28.7231
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 509.0607 | Drift: 50.7471
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 273.3149 | Drift: 54.3263
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 275.7055 | Drift: 14.0767
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 686.6547 | Drift: 10.5758
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 1861.1969 | Drift: 58.7236
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 282.0175 | Drift: 35.3684
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 416.9649 | Drift: 52.4253
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 455.3445 | Drift: 31.2262
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 358.4985 | Drift: 49.4694
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 321.9849 | Drift: 36.8185
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 474.4230 | Drift: 29.0006
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 526.1317 | Drift: 36.0535
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 807.9538 | Drift: 66.7204
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 317.5377 | Drift: 32.1890
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 652.4391 | Drift: 73.0668
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 537.0373 | Drift: 46.6230
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 504.0177 | Drift: 19.7130
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 892.2716 | Drift: 23.4028
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 347.1192 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 322.7693 | Drift: 37.0698
+Worker 57 finished successfully. Saved to results_sweep_57.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 342.6420 | Drift: 63.7019
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 292.9068 | Drift: 74.0651
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 223.2410 | Drift: 48.0770
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 286.7240 | Drift: 26.9567
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 277.4839 | Drift: 8.2462
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 619.6071 | Drift: 41.4387
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 174.2571 | Drift: 25.2000
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 714.8074 | Drift: 11.1636
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 903.0344 | Drift: 56.4861
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 253.1103 | Drift: 28.5256
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 473.3237 | Drift: 63.1986
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 241.5993 | Drift: 54.9717
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 238.0735 | Drift: 20.3426
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 941.6860 | Drift: 10.8983
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 1674.9397 | Drift: 48.5278
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 344.9220 | Drift: 33.1022
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 714.3021 | Drift: 48.7093
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 290.9098 | Drift: 20.4807
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 1147.8474 | Drift: 58.8429
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 358.6468 | Drift: 33.9499
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 441.7202 | Drift: 34.6531
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 585.3441 | Drift: 41.4041
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 317.0902 | Drift: 54.7117
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 309.7715 | Drift: 36.4132
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 294.8025 | Drift: 58.1034
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 328.5010 | Drift: 50.6171
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 337.4557 | Drift: 17.3011
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 1042.8184 | Drift: 14.7608
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 852.8742 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 848.9996 | Drift: 38.4907
+Worker 58 finished successfully. Saved to results_sweep_58.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 452.4445 | Drift: 68.0411
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 340.1772 | Drift: 77.8090
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 223.0760 | Drift: 34.6875
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 300.5735 | Drift: 28.8063
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 656.2220 | Drift: 5.6675
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 919.4444 | Drift: 40.8149
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 203.5281 | Drift: 24.7076
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 1090.9254 | Drift: 25.4579
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 782.0515 | Drift: 60.7563
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 252.4845 | Drift: 32.3886
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 572.5480 | Drift: 60.1227
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 279.3073 | Drift: 63.0313
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 259.3721 | Drift: 12.5650
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 677.5657 | Drift: 11.5735
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 903.8551 | Drift: 53.7435
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 374.5236 | Drift: 32.1236
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 353.3852 | Drift: 42.1790
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 290.0590 | Drift: 16.9068
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 1514.2903 | Drift: 49.6319
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 367.5637 | Drift: 37.9706
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 486.5674 | Drift: 32.6410
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 376.1849 | Drift: 38.5393
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 616.3931 | Drift: 57.0712
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 362.7224 | Drift: 32.8270
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 440.7855 | Drift: 72.0052
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 247.6368 | Drift: 48.2192
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 347.6432 | Drift: 21.4427
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 681.3767 | Drift: 19.0066
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 1434.7436 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 1439.1354 | Drift: 39.7209
+Worker 59 finished successfully. Saved to results_sweep_59.json
+  -> Launching Sub-task 61 in background: A=0.0099 B=0.54 G=0.022 D=23.1
+  -> Launching Sub-task 62 in background: A=0.0067 B=1.65 G=0.032 D=17.1
+  -> Launching Sub-task 63 in background: A=0.0046 B=0.51 G=0.099 D=17.5
+  -> Launching Sub-task 64 in background: A=0.0081 B=1.58 G=0.044 D=22.7
+Waiting for current batch of 4 workers to finish...
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 261.3468 | Drift: 61.4764
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 245.9752 | Drift: 72.0576
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 158.1654 | Drift: 37.6849
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 156.9604 | Drift: 17.8488
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 470.5911 | Drift: 8.6783
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 543.2446 | Drift: 50.6167
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 268.0494 | Drift: 23.0019
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 312.1404 | Drift: 18.2936
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 444.0849 | Drift: 60.8623
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 223.7957 | Drift: 27.5398
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 385.2528 | Drift: 47.8168
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 166.4445 | Drift: 50.6900
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 188.4976 | Drift: 20.2305
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 692.6917 | Drift: 12.7549
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 528.6472 | Drift: 43.2281
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 167.2206 | Drift: 39.0977
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 293.0503 | Drift: 38.6241
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 353.3288 | Drift: 14.9865
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 370.8695 | Drift: 50.2896
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 242.5506 | Drift: 30.8521
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 208.1370 | Drift: 37.0625
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 190.1311 | Drift: 32.8895
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 211.6306 | Drift: 51.2571
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 144.5611 | Drift: 31.5800
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 317.8708 | Drift: 61.9151
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 177.5626 | Drift: 41.0511
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 269.3473 | Drift: 15.5626
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 382.9682 | Drift: 21.6636
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 429.9234 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 429.5184 | Drift: 38.9239
+Worker 63 finished successfully. Saved to results_sweep_63.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 342.4736 | Drift: 52.0913
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 392.8232 | Drift: 67.7948
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 212.6640 | Drift: 45.7584
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 275.2482 | Drift: 26.3541
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 421.5754 | Drift: 10.9902
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 901.4471 | Drift: 35.7096
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 312.9508 | Drift: 27.5058
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 407.4303 | Drift: 17.3730
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 584.1145 | Drift: 63.2644
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 247.3384 | Drift: 31.2308
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 337.3826 | Drift: 65.5474
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 149.4636 | Drift: 60.3438
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 219.1444 | Drift: 15.3219
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 1007.1835 | Drift: 9.0978
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 1287.9661 | Drift: 48.0897
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 402.6584 | Drift: 33.5474
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 315.3465 | Drift: 51.4786
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 239.4036 | Drift: 16.2836
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 535.0278 | Drift: 51.1160
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 283.0297 | Drift: 31.9984
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 208.2033 | Drift: 33.3691
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 299.2915 | Drift: 38.9785
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 432.5750 | Drift: 65.3813
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 249.3637 | Drift: 37.6446
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 325.7008 | Drift: 71.3160
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 294.0755 | Drift: 36.0130
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 287.9319 | Drift: 13.7035
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 779.6618 | Drift: 23.6129
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 520.1555 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 530.4309 | Drift: 34.8599
+Worker 64 finished successfully. Saved to results_sweep_64.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 357.8487 | Drift: 70.5248
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 289.7602 | Drift: 71.4733
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 195.8794 | Drift: 43.5845
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 182.6874 | Drift: 26.1815
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 721.1390 | Drift: 8.7125
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 2142.2941 | Drift: 47.0328
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 234.4225 | Drift: 30.2648
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 419.4078 | Drift: 17.8695
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 460.3633 | Drift: 65.0584
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 192.6188 | Drift: 31.6154
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 410.5874 | Drift: 56.8264
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 224.5222 | Drift: 53.2947
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 339.2241 | Drift: 23.1085
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 509.0099 | Drift: 11.9115
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 1159.8565 | Drift: 59.1440
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 249.6349 | Drift: 41.5392
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 417.9740 | Drift: 42.9060
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 489.0344 | Drift: 20.5776
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 714.1881 | Drift: 48.9038
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 273.2773 | Drift: 36.5134
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 631.3530 | Drift: 43.7918
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 287.6584 | Drift: 41.6138
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 432.9471 | Drift: 52.9567
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 201.6270 | Drift: 38.4967
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 491.6174 | Drift: 68.5607
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 192.9899 | Drift: 45.8754
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 260.2440 | Drift: 16.4293
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 830.7238 | Drift: 13.2055
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 801.0279 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 809.1321 | Drift: 39.5715
+Worker 61 finished successfully. Saved to results_sweep_61.json
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 261.6244 | Drift: 67.4495
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 220.1954 | Drift: 72.0867
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 167.2149 | Drift: 39.8117
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 223.0421 | Drift: 31.7231
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 384.1974 | Drift: 5.9639
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 1444.3441 | Drift: 43.1383
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 205.5239 | Drift: 32.9584
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 346.8369 | Drift: 16.6682
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 430.0083 | Drift: 57.9611
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 150.2993 | Drift: 25.9350
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 449.2902 | Drift: 63.3473
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 272.5596 | Drift: 59.3505
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 226.6012 | Drift: 21.2626
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 497.0200 | Drift: 7.1024
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 1781.2947 | Drift: 67.2016
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 160.2172 | Drift: 42.9010
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 177.9701 | Drift: 45.4074
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 198.5315 | Drift: 15.2787
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 496.8145 | Drift: 39.6497
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 392.3509 | Drift: 40.3869
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 373.0267 | Drift: 41.7731
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 140.7307 | Drift: 42.4869
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 350.2611 | Drift: 62.4679
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 205.4791 | Drift: 36.3408
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 346.7511 | Drift: 67.6153
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 222.2246 | Drift: 48.5651
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 253.0241 | Drift: 18.7215
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 784.1658 | Drift: 25.4212
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 416.6921 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 412.4414 | Drift: 41.4376
+Worker 62 finished successfully. Saved to results_sweep_62.json
+All assigned experiments for Array Task 4 have finished.

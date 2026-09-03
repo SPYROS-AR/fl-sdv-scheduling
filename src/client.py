@@ -10,10 +10,13 @@ import warnings
 from scipy.optimize import OptimizeWarning
 from constants import ALPHA, BETA, GAMMA, DELTA, DEVICE
 import model
+import test_model
+from flwr.common.logger import log
+import logging
 
 class FLVehicle(fl.client.NumPyClient):
     def __init__(self, partition_id: int, trainloader: DataLoader, valloader: DataLoader, 
-                 model_size_mb: float = 50.0, epochs_per_compute: int = 10):
+                 model_size_mb: float = 50.0, epochs_per_compute: int = 10, model_name: str = "fl_cnn_balanced"):
         self.id = partition_id
         self.trainloader = trainloader
         self.valloader = valloader
@@ -25,7 +28,7 @@ class FLVehicle(fl.client.NumPyClient):
         self.gamma = GAMMA
         self.delta = DELTA
         
-        self.model = model.load_model().to(DEVICE)
+        self.model = test_model.load_model().to(DEVICE) if model_name == "fl_cnn_balanced" else model.load_model().to(DEVICE)
         self.criterion = nn.CrossEntropyLoss()
 
     def get_parameters(self, config):
@@ -38,6 +41,8 @@ class FLVehicle(fl.client.NumPyClient):
         return [torch.tensor(v).to(DEVICE) for v in parameters]
 
     def fit(self, parameters, config):
+        
+        log(logging.INFO, f"DEBUG: Training is running on -> {next(self.model.parameters()).device}")
         global_weights = self.set_parameters(parameters)
         optimizer = torch.optim.SGD(self.model.parameters(), lr=0.01, momentum=0.9)
         
@@ -48,7 +53,7 @@ class FLVehicle(fl.client.NumPyClient):
         tau_continue = config.get("tau_continue", 0.1)
         drift_threshold = config.get("drift_threshold", 5.0)
         gain_threshold = config.get("gain_threshold", 0.01)
-        bw_threshold = config.get("bw_threshold", 30.0)
+        bw_threshold = config.get("bw_threshold", 20.0)
         
         max_c_i = max(0.0, 1.0 - u_crit)
         

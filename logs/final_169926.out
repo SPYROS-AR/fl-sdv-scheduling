@@ -1,0 +1,792 @@
+Starting final evaluation (Dynamic vs Fixed baselines) on hpc02...
+Requirement already satisfied: numpy>=1.24 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from -r requirements.txt (line 1)) (2.4.6)
+Requirement already satisfied: pandas>=2.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from -r requirements.txt (line 2)) (3.0.5)
+Requirement already satisfied: scikit-learn>=1.4 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from -r requirements.txt (line 3)) (1.9.0)
+Requirement already satisfied: torch>=2.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from -r requirements.txt (line 4)) (2.5.1+cu121)
+Requirement already satisfied: ultralytics>=8.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from -r requirements.txt (line 5)) (8.4.128)
+Requirement already satisfied: opencv-python>=4.8 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from -r requirements.txt (line 6)) (5.0.0.93)
+Requirement already satisfied: python-dateutil>=2.8.2 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from pandas>=2.0->-r requirements.txt (line 2)) (2.9.0.post0)
+Requirement already satisfied: scipy>=1.10.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from scikit-learn>=1.4->-r requirements.txt (line 3)) (1.17.1)
+Requirement already satisfied: joblib>=1.4.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from scikit-learn>=1.4->-r requirements.txt (line 3)) (1.5.3)
+Requirement already satisfied: narwhals>=2.0.1 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from scikit-learn>=1.4->-r requirements.txt (line 3)) (2.25.0)
+Requirement already satisfied: threadpoolctl>=3.5.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from scikit-learn>=1.4->-r requirements.txt (line 3)) (3.6.0)
+Requirement already satisfied: filelock in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (3.32.4)
+Requirement already satisfied: typing-extensions>=4.8.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (4.16.0)
+Requirement already satisfied: networkx in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (3.6.1)
+Requirement already satisfied: jinja2 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (3.1.6)
+Requirement already satisfied: fsspec in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (2024.9.0)
+Requirement already satisfied: nvidia-cuda-nvrtc-cu12==12.1.105 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (12.1.105)
+Requirement already satisfied: nvidia-cuda-runtime-cu12==12.1.105 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (12.1.105)
+Requirement already satisfied: nvidia-cuda-cupti-cu12==12.1.105 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (12.1.105)
+Requirement already satisfied: nvidia-cudnn-cu12==9.1.0.70 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (9.1.0.70)
+Requirement already satisfied: nvidia-cublas-cu12==12.1.3.1 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (12.1.3.1)
+Requirement already satisfied: nvidia-cufft-cu12==11.0.2.54 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (11.0.2.54)
+Requirement already satisfied: nvidia-curand-cu12==10.3.2.106 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (10.3.2.106)
+Requirement already satisfied: nvidia-cusolver-cu12==11.4.5.107 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (11.4.5.107)
+Requirement already satisfied: nvidia-cusparse-cu12==12.1.0.106 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (12.1.0.106)
+Requirement already satisfied: nvidia-nccl-cu12==2.21.5 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (2.21.5)
+Requirement already satisfied: nvidia-nvtx-cu12==12.1.105 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (12.1.105)
+Requirement already satisfied: triton==3.1.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (3.1.0)
+Requirement already satisfied: sympy==1.13.1 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from torch>=2.0->-r requirements.txt (line 4)) (1.13.1)
+Requirement already satisfied: nvidia-nvjitlink-cu12 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from nvidia-cusolver-cu12==11.4.5.107->torch>=2.0->-r requirements.txt (line 4)) (12.9.86)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from sympy==1.13.1->torch>=2.0->-r requirements.txt (line 4)) (1.3.0)
+Requirement already satisfied: matplotlib>=3.3.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics>=8.0->-r requirements.txt (line 5)) (3.11.1)
+Requirement already satisfied: pillow>=7.1.2 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics>=8.0->-r requirements.txt (line 5)) (12.3.0)
+Requirement already satisfied: pyyaml>=5.3.1 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics>=8.0->-r requirements.txt (line 5)) (6.0.3)
+Requirement already satisfied: requests>=2.23.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics>=8.0->-r requirements.txt (line 5)) (2.34.2)
+Requirement already satisfied: torchvision>=0.9.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics>=8.0->-r requirements.txt (line 5)) (0.20.1+cu121)
+Requirement already satisfied: psutil>=5.8.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics>=8.0->-r requirements.txt (line 5)) (7.2.2)
+Requirement already satisfied: polars>=0.20.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics>=8.0->-r requirements.txt (line 5)) (1.44.0)
+Requirement already satisfied: nvidia-ml-py>=12.0.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics>=8.0->-r requirements.txt (line 5)) (13.610.43)
+Requirement already satisfied: ultralytics-thop>=2.1.6 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics>=8.0->-r requirements.txt (line 5)) (2.1.6)
+Requirement already satisfied: ultralytics-platform>=0.1.3 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics>=8.0->-r requirements.txt (line 5)) (0.1.14)
+Requirement already satisfied: contourpy>=1.0.1 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from matplotlib>=3.3.0->ultralytics>=8.0->-r requirements.txt (line 5)) (1.3.3)
+Requirement already satisfied: cycler>=0.10 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from matplotlib>=3.3.0->ultralytics>=8.0->-r requirements.txt (line 5)) (0.12.1)
+Requirement already satisfied: fonttools>=4.28.2 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from matplotlib>=3.3.0->ultralytics>=8.0->-r requirements.txt (line 5)) (4.63.0)
+Requirement already satisfied: kiwisolver>=1.3.1 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from matplotlib>=3.3.0->ultralytics>=8.0->-r requirements.txt (line 5)) (1.5.0)
+Requirement already satisfied: packaging>=20.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from matplotlib>=3.3.0->ultralytics>=8.0->-r requirements.txt (line 5)) (25.0)
+Requirement already satisfied: pyparsing>=3 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from matplotlib>=3.3.0->ultralytics>=8.0->-r requirements.txt (line 5)) (3.3.2)
+Requirement already satisfied: polars-runtime-32==1.44.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from polars>=0.20.0->ultralytics>=8.0->-r requirements.txt (line 5)) (1.44.0)
+Requirement already satisfied: six>=1.5 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from python-dateutil>=2.8.2->pandas>=2.0->-r requirements.txt (line 2)) (1.17.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from requests>=2.23.0->ultralytics>=8.0->-r requirements.txt (line 5)) (3.5.1)
+Requirement already satisfied: idna<4,>=2.5 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from requests>=2.23.0->ultralytics>=8.0->-r requirements.txt (line 5)) (3.19)
+Requirement already satisfied: urllib3<3,>=1.26 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from requests>=2.23.0->ultralytics>=8.0->-r requirements.txt (line 5)) (2.7.0)
+Requirement already satisfied: certifi>=2023.5.7 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from requests>=2.23.0->ultralytics>=8.0->-r requirements.txt (line 5)) (2026.7.22)
+Requirement already satisfied: httpx<1,>=0.28 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from ultralytics-platform>=0.1.3->ultralytics>=8.0->-r requirements.txt (line 5)) (0.28.1)
+Requirement already satisfied: anyio in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from httpx<1,>=0.28->ultralytics-platform>=0.1.3->ultralytics>=8.0->-r requirements.txt (line 5)) (4.14.2)
+Requirement already satisfied: httpcore==1.* in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from httpx<1,>=0.28->ultralytics-platform>=0.1.3->ultralytics>=8.0->-r requirements.txt (line 5)) (1.0.9)
+Requirement already satisfied: h11>=0.16 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from httpcore==1.*->httpx<1,>=0.28->ultralytics-platform>=0.1.3->ultralytics>=8.0->-r requirements.txt (line 5)) (0.16.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /home/it2023003/miniconda3/envs/fl_env/lib/python3.11/site-packages (from jinja2->torch>=2.0->-r requirements.txt (line 4)) (3.0.3)
+Starting dataset setup and simulation...
+Installing requirements.txt...
+Dependencies installed successfully!
+Generating dataset...
+Dataset generation successful!
+Loading and cleaning dataset from dataset/data/network_dataset.csv...
+Data cleaned successfully! Shape: (100000, 24)
+Loading Dataset...
+
+[Round 1] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 1] Cell Load: 250.0/484.1 MB
+[Round 1] Utility: 298.7344 | Drift: 62.5006
+
+[Round 2] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 2] Cell Load: 350.0/490.9 MB
+[Round 2] Utility: 270.5481 | Drift: 77.5010
+
+[Round 3] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 3] Cell Load: 200.0/414.1 MB
+[Round 3] Utility: 161.4484 | Drift: 39.1826
+
+[Round 4] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 4] Cell Load: 150.0/324.3 MB
+[Round 4] Utility: 304.1022 | Drift: 25.9362
+
+[Round 5] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 5] Cell Load: 50.0/304.1 MB
+[Round 5] Utility: 306.9804 | Drift: 12.7046
+
+[Round 6] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 6] Cell Load: 200.0/372.1 MB
+[Round 6] Utility: 829.8147 | Drift: 35.1722
+
+[Round 7] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 7] Cell Load: 150.0/465.7 MB
+[Round 7] Utility: 206.6660 | Drift: 16.3453
+
+[Round 8] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 8] Cell Load: 100.0/498.9 MB
+[Round 8] Utility: 768.5559 | Drift: 12.6204
+
+[Round 9] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 9] Cell Load: 250.0/441.2 MB
+[Round 9] Utility: 555.8059 | Drift: 56.2633
+
+[Round 10] SYNC: 3 | CONTINUE: 7 | WAIT: 0 | DROPPED: 0
+[Round 10] Cell Load: 150.0/345.6 MB
+[Round 10] Utility: 198.4743 | Drift: 22.8383
+
+[Round 11] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: 203.7987 | Drift: 60.0113
+
+[Round 12] SYNC: 6 | CONTINUE: 3 | WAIT: 0 | DROPPED: 1
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: 158.3843 | Drift: 53.2942
+
+[Round 13] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 13] Cell Load: 100.0/442.0 MB
+[Round 13] Utility: 135.3896 | Drift: 19.3879
+
+[Round 14] SYNC: 1 | CONTINUE: 9 | WAIT: 0 | DROPPED: 0
+[Round 14] Cell Load: 50.0/499.1 MB
+[Round 14] Utility: 505.8007 | Drift: 10.6002
+
+[Round 15] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 15] Cell Load: 250.0/465.0 MB
+[Round 15] Utility: 895.7257 | Drift: 57.8967
+
+[Round 16] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 16] Cell Load: 200.0/371.2 MB
+[Round 16] Utility: 275.2865 | Drift: 30.7110
+
+[Round 17] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 17] Cell Load: 250.0/303.9 MB
+[Round 17] Utility: 384.5007 | Drift: 57.0056
+
+[Round 18] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 18] Cell Load: 100.0/324.9 MB
+[Round 18] Utility: 280.6561 | Drift: 20.8669
+
+[Round 19] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 19] Cell Load: 250.0/415.0 MB
+[Round 19] Utility: 180.4122 | Drift: 40.7753
+
+[Round 20] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 20] Cell Load: 200.0/491.3 MB
+[Round 20] Utility: 244.7570 | Drift: 41.4647
+
+[Round 21] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 21] Cell Load: 200.0/483.7 MB
+[Round 21] Utility: 294.6558 | Drift: 38.7648
+
+[Round 22] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 22] Cell Load: 200.0/399.1 MB
+[Round 22] Utility: 374.2165 | Drift: 44.9635
+
+[Round 23] SYNC: 6 | CONTINUE: 4 | WAIT: 0 | DROPPED: 0
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: 198.4609 | Drift: 51.8474
+
+[Round 24] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 24] Cell Load: 200.0/309.4 MB
+[Round 24] Utility: 158.2028 | Drift: 38.5757
+
+[Round 25] SYNC: 7 | CONTINUE: 3 | WAIT: 0 | DROPPED: 0
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: 331.3493 | Drift: 66.3566
+
+[Round 26] SYNC: 5 | CONTINUE: 5 | WAIT: 0 | DROPPED: 0
+[Round 26] Cell Load: 250.0/476.3 MB
+[Round 26] Utility: 215.1195 | Drift: 40.4444
+
+[Round 27] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 27] Cell Load: 100.0/495.6 MB
+[Round 27] Utility: 216.8979 | Drift: 20.6530
+
+[Round 28] SYNC: 2 | CONTINUE: 8 | WAIT: 0 | DROPPED: 0
+[Round 28] Cell Load: 100.0/427.1 MB
+[Round 28] Utility: 456.6490 | Drift: 17.7426
+
+[Round 29] SYNC: 0 | CONTINUE: 10 | WAIT: 0 | DROPPED: 0
+[Round 29] Cell Load: 0.0/333.6 MB
+[Round 29] Utility: 1214.8969 | Drift: 0.0000
+
+[Round 30] SYNC: 4 | CONTINUE: 6 | WAIT: 0 | DROPPED: 0
+[Round 30] Cell Load: 200.0/301.2 MB
+[Round 30] Utility: 1209.5593 | Drift: 47.0351
+
+[Round 1] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 1] Cell Load: 450.0/484.1 MB
+[Round 1] Utility: -2.4852 | Drift: 42.9933
+
+[Round 2] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 2] Cell Load: 450.0/490.9 MB
+[Round 2] Utility: -2.3701 | Drift: 39.1942
+
+[Round 3] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 3] Cell Load: 400.0/414.1 MB
+[Round 3] Utility: -1.9881 | Drift: 32.5256
+
+[Round 4] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 4] Cell Load: 300.0/324.3 MB
+[Round 4] Utility: -1.6119 | Drift: 22.7229
+
+[Round 5] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 5] Cell Load: 300.0/304.1 MB
+[Round 5] Utility: -1.4634 | Drift: 22.3410
+
+[Round 6] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 6] Cell Load: 350.0/372.1 MB
+[Round 6] Utility: -1.6175 | Drift: 25.1168
+
+[Round 7] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 7] Cell Load: 450.0/465.7 MB
+[Round 7] Utility: -1.9115 | Drift: 29.9366
+
+[Round 8] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 8] Cell Load: 450.0/498.9 MB
+[Round 8] Utility: -2.1135 | Drift: 29.6184
+
+[Round 9] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 9] Cell Load: 400.0/441.2 MB
+[Round 9] Utility: -1.6905 | Drift: 27.5706
+
+[Round 10] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 10] Cell Load: 300.0/345.6 MB
+[Round 10] Utility: -1.2836 | Drift: 18.1477
+
+[Round 11] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: -1.3026 | Drift: 19.8922
+
+[Round 12] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: -1.2580 | Drift: 18.7037
+
+[Round 13] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 13] Cell Load: 400.0/442.0 MB
+[Round 13] Utility: -1.6978 | Drift: 26.5525
+
+[Round 14] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 14] Cell Load: 450.0/499.1 MB
+[Round 14] Utility: -1.9639 | Drift: 29.8070
+
+[Round 15] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 15] Cell Load: 450.0/465.0 MB
+[Round 15] Utility: -1.7578 | Drift: 28.5153
+
+[Round 16] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 16] Cell Load: 350.0/371.2 MB
+[Round 16] Utility: -1.5554 | Drift: 23.6284
+
+[Round 17] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 17] Cell Load: 300.0/303.9 MB
+[Round 17] Utility: -1.2666 | Drift: 19.4695
+
+[Round 18] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 18] Cell Load: 300.0/324.9 MB
+[Round 18] Utility: -1.2961 | Drift: 19.7461
+
+[Round 19] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 19] Cell Load: 400.0/415.0 MB
+[Round 19] Utility: -1.6628 | Drift: 25.8439
+
+[Round 20] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 20] Cell Load: 450.0/491.3 MB
+[Round 20] Utility: -1.8619 | Drift: 29.4140
+
+[Round 21] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 21] Cell Load: 450.0/483.7 MB
+[Round 21] Utility: -1.7854 | Drift: 29.4110
+
+[Round 22] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 22] Cell Load: 350.0/399.1 MB
+[Round 22] Utility: -1.4489 | Drift: 22.7242
+
+[Round 23] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: -1.2885 | Drift: 18.9838
+
+[Round 24] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 24] Cell Load: 300.0/309.4 MB
+[Round 24] Utility: -1.4727 | Drift: 22.9759
+
+[Round 25] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: -1.5358 | Drift: 24.1612
+
+[Round 26] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 26] Cell Load: 450.0/476.3 MB
+[Round 26] Utility: -1.9274 | Drift: 31.0099
+
+[Round 27] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 27] Cell Load: 450.0/495.6 MB
+[Round 27] Utility: -1.9400 | Drift: 30.5226
+
+[Round 28] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 28] Cell Load: 400.0/427.1 MB
+[Round 28] Utility: -1.8182 | Drift: 27.1953
+
+[Round 29] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 29] Cell Load: 300.0/333.6 MB
+[Round 29] Utility: -1.4972 | Drift: 22.4688
+
+[Round 30] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 30] Cell Load: 300.0/301.2 MB
+[Round 30] Utility: -1.4109 | Drift: 21.5298
+
+[Round 1] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 1] Cell Load: 450.0/484.1 MB
+[Round 1] Utility: -4.4538 | Drift: 70.0934
+
+[Round 2] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 2] Cell Load: 450.0/490.9 MB
+[Round 2] Utility: -4.2869 | Drift: 65.0433
+
+[Round 3] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 3] Cell Load: 400.0/414.1 MB
+[Round 3] Utility: -3.5652 | Drift: 51.8184
+
+[Round 4] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 4] Cell Load: 300.0/324.3 MB
+[Round 4] Utility: -2.8265 | Drift: 36.1215
+
+[Round 5] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 5] Cell Load: 300.0/304.1 MB
+[Round 5] Utility: -3.0740 | Drift: 41.7498
+
+[Round 6] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 6] Cell Load: 350.0/372.1 MB
+[Round 6] Utility: -2.9224 | Drift: 39.8108
+
+[Round 7] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 7] Cell Load: 450.0/465.7 MB
+[Round 7] Utility: -4.1057 | Drift: 61.5091
+
+[Round 8] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 8] Cell Load: 450.0/498.9 MB
+[Round 8] Utility: -4.1606 | Drift: 55.4656
+
+[Round 9] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 9] Cell Load: 400.0/441.2 MB
+[Round 9] Utility: -3.5420 | Drift: 53.0364
+
+[Round 10] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 10] Cell Load: 300.0/345.6 MB
+[Round 10] Utility: -2.9933 | Drift: 39.5395
+
+[Round 11] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: -3.1640 | Drift: 45.8815
+
+[Round 12] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: -2.7397 | Drift: 36.4857
+
+[Round 13] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 13] Cell Load: 400.0/442.0 MB
+[Round 13] Utility: -3.6866 | Drift: 54.7390
+
+[Round 14] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 14] Cell Load: 450.0/499.1 MB
+[Round 14] Utility: -4.2902 | Drift: 57.7815
+
+[Round 15] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 15] Cell Load: 450.0/465.0 MB
+[Round 15] Utility: -3.9009 | Drift: 60.5429
+
+[Round 16] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 16] Cell Load: 350.0/371.2 MB
+[Round 16] Utility: -3.4225 | Drift: 48.1881
+
+[Round 17] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 17] Cell Load: 300.0/303.9 MB
+[Round 17] Utility: -2.9627 | Drift: 42.1379
+
+[Round 18] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 18] Cell Load: 300.0/324.9 MB
+[Round 18] Utility: -2.9812 | Drift: 41.7230
+
+[Round 19] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 19] Cell Load: 400.0/415.0 MB
+[Round 19] Utility: -3.7680 | Drift: 55.5238
+
+[Round 20] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 20] Cell Load: 450.0/491.3 MB
+[Round 20] Utility: -4.1000 | Drift: 61.1012
+
+[Round 21] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 21] Cell Load: 450.0/483.7 MB
+[Round 21] Utility: -4.0878 | Drift: 64.0634
+
+[Round 22] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 22] Cell Load: 350.0/399.1 MB
+[Round 22] Utility: -3.1432 | Drift: 46.2524
+
+[Round 23] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: -2.9933 | Drift: 41.2829
+
+[Round 24] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 24] Cell Load: 300.0/309.4 MB
+[Round 24] Utility: -3.2214 | Drift: 45.3546
+
+[Round 25] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: -3.4939 | Drift: 50.9783
+
+[Round 26] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 26] Cell Load: 450.0/476.3 MB
+[Round 26] Utility: -4.1445 | Drift: 61.8975
+
+[Round 27] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 27] Cell Load: 450.0/495.6 MB
+[Round 27] Utility: -4.2650 | Drift: 63.6954
+
+[Round 28] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 28] Cell Load: 400.0/427.1 MB
+[Round 28] Utility: -3.8880 | Drift: 57.3448
+
+[Round 29] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 29] Cell Load: 300.0/333.6 MB
+[Round 29] Utility: -2.9873 | Drift: 40.1985
+
+[Round 30] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 30] Cell Load: 300.0/301.2 MB
+[Round 30] Utility: -2.9735 | Drift: 40.5382
+
+[Round 1] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 1] Cell Load: 450.0/484.1 MB
+[Round 1] Utility: -6.5629 | Drift: 99.8033
+
+[Round 2] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 2] Cell Load: 450.0/490.9 MB
+[Round 2] Utility: -6.5052 | Drift: 94.9953
+
+[Round 3] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 3] Cell Load: 400.0/414.1 MB
+[Round 3] Utility: -5.4617 | Drift: 77.2395
+
+[Round 4] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 4] Cell Load: 300.0/324.3 MB
+[Round 4] Utility: -4.1337 | Drift: 50.8324
+
+[Round 5] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 5] Cell Load: 300.0/304.1 MB
+[Round 5] Utility: -4.0730 | Drift: 50.3195
+
+[Round 6] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 6] Cell Load: 350.0/372.1 MB
+[Round 6] Utility: -4.5588 | Drift: 60.9214
+
+[Round 7] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 7] Cell Load: 450.0/465.7 MB
+[Round 7] Utility: -5.2248 | Drift: 71.7019
+
+[Round 8] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 8] Cell Load: 450.0/498.9 MB
+[Round 8] Utility: -5.6807 | Drift: 70.7668
+
+[Round 9] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 9] Cell Load: 400.0/441.2 MB
+[Round 9] Utility: -5.2939 | Drift: 76.9138
+
+[Round 10] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 10] Cell Load: 300.0/345.6 MB
+[Round 10] Utility: -4.1324 | Drift: 50.0430
+
+[Round 11] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: -3.6691 | Drift: 44.6412
+
+[Round 12] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: -3.8410 | Drift: 46.6145
+
+[Round 13] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 13] Cell Load: 400.0/442.0 MB
+[Round 13] Utility: -5.1377 | Drift: 71.5709
+
+[Round 14] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 14] Cell Load: 450.0/499.1 MB
+[Round 14] Utility: -6.1122 | Drift: 79.5646
+
+[Round 15] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 15] Cell Load: 450.0/465.0 MB
+[Round 15] Utility: -5.2886 | Drift: 77.6196
+
+[Round 16] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 16] Cell Load: 350.0/371.2 MB
+[Round 16] Utility: -4.7109 | Drift: 61.2348
+
+[Round 17] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 17] Cell Load: 300.0/303.9 MB
+[Round 17] Utility: -4.3747 | Drift: 59.3097
+
+[Round 18] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 18] Cell Load: 300.0/324.9 MB
+[Round 18] Utility: -3.9357 | Drift: 49.2862
+
+[Round 19] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 19] Cell Load: 400.0/415.0 MB
+[Round 19] Utility: -5.1334 | Drift: 70.5607
+
+[Round 20] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 20] Cell Load: 450.0/491.3 MB
+[Round 20] Utility: -5.2665 | Drift: 71.4413
+
+[Round 21] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 21] Cell Load: 450.0/483.7 MB
+[Round 21] Utility: -5.2596 | Drift: 76.1891
+
+[Round 22] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 22] Cell Load: 350.0/399.1 MB
+[Round 22] Utility: -4.2458 | Drift: 57.3899
+
+[Round 23] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: -4.1320 | Drift: 51.6630
+
+[Round 24] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 24] Cell Load: 300.0/309.4 MB
+[Round 24] Utility: -4.4087 | Drift: 54.6434
+
+[Round 25] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: -4.5607 | Drift: 59.9382
+
+[Round 26] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 26] Cell Load: 450.0/476.3 MB
+[Round 26] Utility: -5.5520 | Drift: 76.5624
+
+[Round 27] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 27] Cell Load: 450.0/495.6 MB
+[Round 27] Utility: -5.3749 | Drift: 72.6076
+
+[Round 28] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 28] Cell Load: 400.0/427.1 MB
+[Round 28] Utility: -4.9437 | Drift: 66.5444
+
+[Round 29] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 29] Cell Load: 300.0/333.6 MB
+[Round 29] Utility: -4.0735 | Drift: 48.7133
+
+[Round 30] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 30] Cell Load: 300.0/301.2 MB
+[Round 30] Utility: -3.9222 | Drift: 47.2943
+
+[Round 1] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 1] Cell Load: 450.0/484.1 MB
+[Round 1] Utility: -10.0918 | Drift: 139.6598
+
+[Round 2] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 2] Cell Load: 450.0/490.9 MB
+[Round 2] Utility: -10.8294 | Drift: 147.8450
+
+[Round 3] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 3] Cell Load: 400.0/414.1 MB
+[Round 3] Utility: -8.8991 | Drift: 115.5900
+
+[Round 4] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 4] Cell Load: 300.0/324.3 MB
+[Round 4] Utility: -6.8565 | Drift: 73.7675
+
+[Round 5] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 5] Cell Load: 300.0/304.1 MB
+[Round 5] Utility: -6.7695 | Drift: 72.8311
+
+[Round 6] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 6] Cell Load: 350.0/372.1 MB
+[Round 6] Utility: -6.6392 | Drift: 74.0927
+
+[Round 7] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 7] Cell Load: 450.0/465.7 MB
+[Round 7] Utility: -7.9237 | Drift: 95.3358
+
+[Round 8] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 8] Cell Load: 450.0/498.9 MB
+[Round 8] Utility: -8.6849 | Drift: 93.1240
+
+[Round 9] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 9] Cell Load: 400.0/441.2 MB
+[Round 9] Utility: -6.6549 | Drift: 76.3187
+
+[Round 10] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 10] Cell Load: 300.0/345.6 MB
+[Round 10] Utility: -6.1187 | Drift: 57.2150
+
+[Round 11] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: -5.9865 | Drift: 62.7442
+
+[Round 12] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: -5.6792 | Drift: 53.7006
+
+[Round 13] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 13] Cell Load: 400.0/442.0 MB
+[Round 13] Utility: -6.5122 | Drift: 71.3304
+
+[Round 14] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 14] Cell Load: 450.0/499.1 MB
+[Round 14] Utility: -8.2146 | Drift: 85.0155
+
+[Round 15] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 15] Cell Load: 450.0/465.0 MB
+[Round 15] Utility: -6.9027 | Drift: 82.8795
+
+[Round 16] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 16] Cell Load: 350.0/371.2 MB
+[Round 16] Utility: -6.4737 | Drift: 64.9135
+
+[Round 17] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 17] Cell Load: 300.0/303.9 MB
+[Round 17] Utility: -5.5606 | Drift: 55.2157
+
+[Round 18] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 18] Cell Load: 300.0/324.9 MB
+[Round 18] Utility: -5.7875 | Drift: 57.7944
+
+[Round 19] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 19] Cell Load: 400.0/415.0 MB
+[Round 19] Utility: -7.3047 | Drift: 83.4375
+
+[Round 20] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 20] Cell Load: 450.0/491.3 MB
+[Round 20] Utility: -7.4360 | Drift: 82.2406
+
+[Round 21] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 21] Cell Load: 450.0/483.7 MB
+[Round 21] Utility: -6.8940 | Drift: 80.6689
+
+[Round 22] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 22] Cell Load: 350.0/399.1 MB
+[Round 22] Utility: -5.7833 | Drift: 61.7385
+
+[Round 23] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: -5.7739 | Drift: 54.3522
+
+[Round 24] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 24] Cell Load: 300.0/309.4 MB
+[Round 24] Utility: -5.8943 | Drift: 54.1675
+
+[Round 25] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: -6.4733 | Drift: 67.1967
+
+[Round 26] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 26] Cell Load: 450.0/476.3 MB
+[Round 26] Utility: -7.6591 | Drift: 85.1213
+
+[Round 27] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 27] Cell Load: 450.0/495.6 MB
+[Round 27] Utility: -7.6660 | Drift: 85.7669
+
+[Round 28] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 28] Cell Load: 400.0/427.1 MB
+[Round 28] Utility: -6.7076 | Drift: 73.5056
+
+[Round 29] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 29] Cell Load: 300.0/333.6 MB
+[Round 29] Utility: -6.1544 | Drift: 59.0582
+
+[Round 30] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 30] Cell Load: 300.0/301.2 MB
+[Round 30] Utility: -5.9192 | Drift: 56.4552
+
+[Round 1] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 1] Cell Load: 450.0/484.1 MB
+[Round 1] Utility: -17.3504 | Drift: 223.5824
+
+[Round 2] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 2] Cell Load: 450.0/490.9 MB
+[Round 2] Utility: -16.0819 | Drift: 185.7294
+
+[Round 3] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 3] Cell Load: 400.0/414.1 MB
+[Round 3] Utility: -11.1886 | Drift: 99.3751
+
+[Round 4] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 4] Cell Load: 300.0/324.3 MB
+[Round 4] Utility: -9.6040 | Drift: 69.9786
+
+[Round 5] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 5] Cell Load: 300.0/304.1 MB
+[Round 5] Utility: -9.8868 | Drift: 75.1258
+
+[Round 6] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 6] Cell Load: 350.0/372.1 MB
+[Round 6] Utility: -9.8724 | Drift: 81.4402
+
+[Round 7] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 7] Cell Load: 450.0/465.7 MB
+[Round 7] Utility: -11.1040 | Drift: 97.5451
+
+[Round 8] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 8] Cell Load: 450.0/498.9 MB
+[Round 8] Utility: -13.2112 | Drift: 108.0866
+
+[Round 9] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 9] Cell Load: 400.0/441.2 MB
+[Round 9] Utility: -9.8726 | Drift: 84.9829
+
+[Round 10] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 10] Cell Load: 300.0/345.6 MB
+[Round 10] Utility: -9.3506 | Drift: 57.7967
+
+[Round 11] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 11] Cell Load: 300.0/300.0 MB
+[Round 11] Utility: -8.8382 | Drift: 63.3227
+
+[Round 12] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 12] Cell Load: 300.0/346.3 MB
+[Round 12] Utility: -8.8399 | Drift: 57.6207
+
+[Round 13] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 13] Cell Load: 400.0/442.0 MB
+[Round 13] Utility: -10.2168 | Drift: 87.1963
+
+[Round 14] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 14] Cell Load: 450.0/499.1 MB
+[Round 14] Utility: -12.3091 | Drift: 93.6860
+
+[Round 15] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 15] Cell Load: 450.0/465.0 MB
+[Round 15] Utility: -9.8647 | Drift: 88.0016
+
+[Round 16] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 16] Cell Load: 350.0/371.2 MB
+[Round 16] Utility: -10.0119 | Drift: 72.1167
+
+[Round 17] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 17] Cell Load: 300.0/303.9 MB
+[Round 17] Utility: -8.6799 | Drift: 61.9804
+
+[Round 18] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 18] Cell Load: 300.0/324.9 MB
+[Round 18] Utility: -8.7985 | Drift: 60.4962
+
+[Round 19] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 19] Cell Load: 400.0/415.0 MB
+[Round 19] Utility: -10.6244 | Drift: 88.0137
+
+[Round 20] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 20] Cell Load: 450.0/491.3 MB
+[Round 20] Utility: -10.7436 | Drift: 83.1615
+
+[Round 21] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 21] Cell Load: 450.0/483.7 MB
+[Round 21] Utility: -10.3486 | Drift: 93.1816
+
+[Round 22] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 22] Cell Load: 350.0/399.1 MB
+[Round 22] Utility: -8.9680 | Drift: 71.9229
+
+[Round 23] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 23] Cell Load: 300.0/315.4 MB
+[Round 23] Utility: -9.2732 | Drift: 63.0506
+
+[Round 24] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 24] Cell Load: 300.0/309.4 MB
+[Round 24] Utility: -9.3612 | Drift: 65.2139
+
+[Round 25] SYNC: 7 | CONTINUE: 0 | WAIT: 0 | DROPPED: 3
+[Round 25] Cell Load: 350.0/386.8 MB
+[Round 25] Utility: -9.9580 | Drift: 75.0117
+
+[Round 26] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 26] Cell Load: 450.0/476.3 MB
+[Round 26] Utility: -11.2803 | Drift: 90.2378
+
+[Round 27] SYNC: 9 | CONTINUE: 0 | WAIT: 0 | DROPPED: 1
+[Round 27] Cell Load: 450.0/495.6 MB
+[Round 27] Utility: -10.9884 | Drift: 86.3339
+
+[Round 28] SYNC: 8 | CONTINUE: 0 | WAIT: 0 | DROPPED: 2
+[Round 28] Cell Load: 400.0/427.1 MB
+[Round 28] Utility: -9.8884 | Drift: 80.5579
+
+[Round 29] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 29] Cell Load: 300.0/333.6 MB
+[Round 29] Utility: -9.2671 | Drift: 59.6072
+
+[Round 30] SYNC: 6 | CONTINUE: 0 | WAIT: 0 | DROPPED: 4
+[Round 30] Cell Load: 300.0/301.2 MB
+[Round 30] Utility: -9.3990 | Drift: 64.5910
+Utility graph saved as 'utility_graph.png'!
+Graph saved as 'results_graph.png'!
+Interference graph saved as 'interference_graph.png'!
+Drift graph saved as 'drift_graph.png'!
+Evaluation complete!
