@@ -12,7 +12,7 @@
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
-# Dynamic Array Math (Distribute total lines evenly among tasks)
+# Distribute total lines evenly among tasks
 TOTAL_LINES=$(wc -l < params.txt)
 NUM_TASKS=$SLURM_ARRAY_TASK_MAX 
 LINES_PER_TASK=$(( (TOTAL_LINES + NUM_TASKS - 1) / NUM_TASKS ))
@@ -27,7 +27,7 @@ fi
 echo "Slurm Array Task ${SLURM_ARRAY_TASK_ID} running on $(hostname)"
 echo "File has $TOTAL_LINES lines. Assigned lines $START_LINE to $END_LINE."
 
-# Set strict concurrency limit per node (memory safety)
+# Set strict concurrency limit per nod
 CONCURRENT_LIMIT=4
 ACTIVE_JOBS=0
 
@@ -48,7 +48,7 @@ for i in $(seq $START_LINE $END_LINE); do
         --delta $DELTA \
         --job_id ${i} &
         
-    # Increment our active job counter
+    # Increment active job counter
     ACTIVE_JOBS=$((ACTIVE_JOBS + 1))
     
     # Wait for this batch to finish before continuing

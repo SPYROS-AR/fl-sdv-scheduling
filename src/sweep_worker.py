@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # Ensure dataset exists before workers start pulling
     df = pd.read_csv("dataset/data/cleaned_network_dataset.csv")
     
-    # Run only the 'dynamic' policy to evaluate this specific weight combination
+    # Run only the dynamic policy to evaluate this specific weight combination
     results, model_name = run_simulation(
         df, 
         NUM_VEHICLES, 
