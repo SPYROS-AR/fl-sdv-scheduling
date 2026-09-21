@@ -1,24 +1,18 @@
 #!/bin/bash
 #SBATCH --job-name=fl_final_eval
 #SBATCH --partition=yoda
-#SBATCH --gres=gpu:1             
+#SBATCH --gres=gpu:1          
 #SBATCH --cpus-per-task=20
-#SBATCH --time=03:00:00
-#SBATCH --mem=32G               
-#SBATCH --output=logs/final_%j.out
-#SBATCH --error=logs/final_%j.err
+#SBATCH --time=04:00:00
+#SBATCH --mem=32G              
+#SBATCH --output=logs/final_%A_%a.out
+#SBATCH --error=logs/final_%A_%a.err
 
 
 source ~/miniconda3/bin/activate fl_env
-
 mkdir -p logs
 
-echo "Starting final evaluation (Dynamic vs Fixed baselines) on $(hostname)..."
+# Run the python script with the mapped model
+python src/main.py --rounds 150
 
-# Run the main script
-python src/main.py \
-    --model fl_cnn_balanced
-python src/main.py \
-    --model fl_cnn
-
-echo "Evaluation complete!"
+echo "Evaluation complete for $CURRENT_MODEL!"

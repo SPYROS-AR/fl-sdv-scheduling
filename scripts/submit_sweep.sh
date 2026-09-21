@@ -12,6 +12,13 @@
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
+
+if [ ! -s params.txt ]; then
+    echo "Error: params.txt does not exist or is empty!"
+    echo "Please manually run 'python generate_params.py' before submitting this job."
+    exit 1
+fi
+
 # Distribute total lines evenly among tasks
 TOTAL_LINES=$(wc -l < params.txt)
 NUM_TASKS=$SLURM_ARRAY_TASK_MAX 
@@ -27,7 +34,7 @@ fi
 echo "Slurm Array Task ${SLURM_ARRAY_TASK_ID} running on $(hostname)"
 echo "File has $TOTAL_LINES lines. Assigned lines $START_LINE to $END_LINE."
 
-# Set strict concurrency limit per nod
+# Set strict concurrency limit per node
 CONCURRENT_LIMIT=4
 ACTIVE_JOBS=0
 
