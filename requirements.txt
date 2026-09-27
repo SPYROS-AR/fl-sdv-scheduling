@@ -7,3 +7,4 @@ flwr
 flwr_datasets
 flwr[simulation]==1.33.0
 scipy
+plotly

@@ -8,10 +8,10 @@ MAX_ALLOWED_DRIFT = 20.0  # Max L2 distance threshold for model weights
 MODEL_SIZE_MB = 50.0      # Broadcast payload size
 
 # --- Utility Policy Hyperparameters ---
-ALPHA = 0.0035
+ALPHA = 0.005
 BETA = 1.0
-GAMMA = 0.01
-DELTA = 20.0
+GAMMA = 0.006
+DELTA = 27.0
 
 # --- Dataset & Environment Config ---
 DATASET = "uoft-cs/cifar10"

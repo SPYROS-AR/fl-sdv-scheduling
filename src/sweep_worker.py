@@ -1,8 +1,7 @@
-# sweep_worker.py
 import argparse
 import json
+import os
 import pandas as pd
-from filelock import FileLock
 from scheduler import run_simulation
 from constants import NUM_VEHICLES, NUM_SAMPLES
 
@@ -42,12 +41,12 @@ if __name__ == "__main__":
         "delta": args.delta
     }
     
-    out_file = "all_sweep_results.jsonl"
-    lock_file = f"{out_file}.lock"
+    # Save to a dedicated subfolder to avoid cluttering the main directory
+    output_dir = "sweep_outputs"
+    os.makedirs(output_dir, exist_ok=True)
     
-    # Cross-platform safe append
-    with FileLock(lock_file):
-        with open(out_file, "a") as f:
-            f.write(json.dumps(results) + "\n")
+    out_file = os.path.join(output_dir, f"result_{args.job_id}.json")
+    with open(out_file, "w") as f:
+        json.dump(results, f)
             
-    print(f"Worker {args.job_id} finished successfully. Appended to {out_file}")
+    print(f"Worker {args.job_id} finished successfully. Saved to {out_file}")
