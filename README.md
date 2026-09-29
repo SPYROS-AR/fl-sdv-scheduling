@@ -1,36 +1,107 @@
-# FL-SDV Scheduling
+# Federated Learning in Software-Defined Vehicles (SDVs): Optimizing Communication Frequency
 
-A simulation environment for Federated Learning (FL) resource scheduling in Software-Defined Vehicles (SDVs)
+This repository contains the implementation and experimental evaluation code for the research paper: **"Federated Learning in SDVs: Optimizing Communication Frequency"** by Spyridon Arvanitis.
 
-## System Architecture and Capabilities
+## Overview
 
-The framework has transitioned to a dataset-driven mathematical simulation pipeline, moving away from live physical SUMO telemetry. The current workflow includes:
+Deploying Federated Learning (FL) on Software-Defined Vehicles (SDVs) requires balancing wireless transmission overhead, client model drift, and onboard compute resource contention with safety-critical vehicle workloads (such as ADAS perception and trajectory planning). 
 
-1. **Data Setup:** Automatically clones the [`CLOUDNET2026-QoS-Offloading`](https://github.com/icsa-hua/CLOUDNET2026-QoS-Offloading.git) repository and generates network dataset samples based on configured vehicle and sample constants.
-2. **Data Processing:** Loads and cleans the generated network data (`network_dataset.csv`). It dynamically calculates the critical compute load (`u_crit_t`) for each vehicle utilizing factors such as car speed, urban scenarios (dense vs. sparse), and active network handovers.
-3. **Federated Learning Scheduler:** Utilizes a `HeuristicFLScheduler` to allocate compute resources (`c_i`, `e_i`) and decide communication states (`p_i`). The scheduler optimizes a custom cost function that balances:
-   - **Network Cost:** Evaluated using the vehicle's model size and the dynamic MEC channel bandwidth.
-   - **Compute Cost:** Derived from the compute allocation and the vehicle's critical load.
-   - **Model Drift:** Tracks model backlog/divergence and dynamically updates state constraints to trigger global syncs.
+Conventional vehicular FL frameworks typically assume dedicated onboard compute and rely on static local training intervals, which can lead to uplink cellular congestion and compute starvation for co-located real-time service. This project provides a runtime heuristic policy engine that dynamically regulates local training epochs and client upload schedules based on available compute slack, instantaneous link throughput, and observed local loss progress.
 
-## Project Structure
+---
 
-- `main.py`: The entry point for the simulation. Orchestrates data generation, data processing, and scheduling logic.
-- `constants.py`: Contains global configuration variables (e.g., `NUM_SAMPLES`, `NUM_VEHICLES`).
-- `data_setup.py`: Automates the cloning of the dataset repository and executes the dataset generation script via a subprocess.
-- `data_processing.py`: Formats boolean columns, computes the critical load heuristic, and exports a cleaned dataset.
-- `scheduler.py`: Contains the `Vehicle` class representing FL clients, and the `FLScheduler` class which manages decision-making and generates visual plots of aggregate drift over time.
+## Repository Structure
 
-## How to Run
+```text
+.
+├── src/
+│   ├── client.py                 # FLVehicle client implementation (dynamic and fixed policies)
+│   ├── server.py                 # DynamicFLStrategy and CSV metrics logging
+│   ├── scheduler.py              # Flower simulation orchestrator and client factory
+│   ├── model.py                  # ResNet-9 architecture with Group Normalization
+│   ├── constants.py              # Simulation, networking, and utility hyperparameters
+│   ├── data_setup.py             # External repository cloning and Dirichlet data partitioning
+│   ├── data_processing.py        # Network dataset cleaning and feature extraction
+│   ├── main.py                   # Main CLI entry point for simulations
+│   ├── sweep_worker.py           # Single-worker script for hyperparameter sweeps
+│   ├── compare_sweep.py          # Parses sweep outputs and ranks parameter sets
+│   ├── visualization.py          # Generates evaluation PDF figures (Figures 1–4)
+│   ├── hyperparameters_sweep_plots.py # Generates Pareto frontier sweep plots
+│   └── setup_data.py             # One-time data initialization script
+├── generate_params.py            # Generates hyperparameter combinations (params.txt)
+├── plot_sweeps.py                # Generates interactive Plotly parallel coordinates plot
+├── submit_sweep.sh               # Slurm array script for hyperparameter sweeps
+├── submit_aggregator.sh          # Slurm script for aggregating sweep results
+├── submit_final.sh               # Slurm array script for final comparative evaluation
+└── requirements.txt              # Python package dependencies
+```
+## Setup and initialization
+1. Create a python enviroment 
 
-### Prerequisites
-Ensure you have Python 3 installed along with the required libraries:
+
+2. Initialize the dataset:
+This step clones the external network dataset repository (CLOUDNET2026-QoS-Offloading.git) and partitions the CIFAR-10 dataset using a Dirichlet distribution ($\alpha_{Dir} = 0.2$) across $10$ vehicles:
+
 ```bash
-pip install pandas numpy matplotlib
+python src/setup_data.py
 ```
-### Execution
-Run the full pipeline (dataset generation, processing, and simulation execution) using:
 
-```Bash
-python3 main.py
+## Running Locally
+
+To run experiments directly via Python without a cluster scheduler, use src/main.py
+
+## 1. Run Simulations
+
+Run only the dynamic policy:
+```bash
+python src/main.py --rounds 250 --dynamic_only
 ```
+Run a specific fixed-epoch baseline (e.g. 3 epochs):
+```bash
+python src/main.py --rounds 250 --fixed 3
+```
+Run all baseline experiments sequentially (Dynamic and Fixed 1, 3, 5, 10, 20):
+```bash
+python src/main.py --rounds 50
+```
+## 2. Generate Evaluation Plots
+
+After running the simulation data generation, produce the evaluation PDF figures (saved in the plots/ directory):
+```bash
+python src/visualization.py
+```
+
+## Running on a Slurm Cluster
+
+To execute large-scale hyperparameter sweeps or full comparative evaluations on a Slurm cluster, use the provided shell scripts.
+
+1. Hyperparameter Sweeps
+Generate the parameter file (params.txt):
+
+```bash
+python generate_params.py --num_sweeps 100
+```
+2. Submit the parameter sweep array job:
+
+```bash
+sbatch submit_sweep.sh
+```
+3. Aggregate the sweep results once finished:
+
+```bash
+sbatch submit_aggregator.sh
+```
+4. Generate interactive sweep visualizations (Plotly HTML):
+
+```bash
+python plot_sweeps.py
+```
+
+## 2. Final Comparative Evaluation
+To run the complete comparative benchmark across the proposed dynamic policy and all fixed-epoch baselines (1, 3, 5, 10, 20 epochs) as a parallel array job:
+
+```bash
+sbatch submit_final.sh
+```
+Note: This script dispatches array tasks (0 to 5) running main.py --rounds 250 in parallel using allocated GPU resources
+

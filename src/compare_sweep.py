@@ -1,7 +1,6 @@
 import json
 import glob
 import pandas as pd
-import os
 
 
 def parse_sweep_file(file_path: str) -> dict:

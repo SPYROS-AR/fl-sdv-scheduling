@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 def identify_pareto_frontier(df, x_col, y_col, maximize_x=False, maximize_y=True):
     """

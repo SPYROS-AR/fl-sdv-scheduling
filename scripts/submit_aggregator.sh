@@ -8,7 +8,6 @@
 #SBATCH --mem=8G
 #SBATCH --partition=yoda
 
-source /home/it2023003/miniconda3/etc/profile.d/conda.sh
 conda activate fl_env
 
 echo "Starting array aggregation..."
