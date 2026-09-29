@@ -26,7 +26,7 @@ Conventional vehicular FL frameworks typically assume dedicated onboard compute 
 │   ├── sweep_worker.py           # Single-worker script for hyperparameter sweeps
 │   ├── compare_sweep.py          # Parses sweep outputs and ranks parameter sets
 │   ├── visualization.py          # Generates evaluation PDF figures (Figures 1–4)
-│   ├── hyperparameters_sweep_plots.py # Generates Pareto frontier sweep plots
+│   ├── hyperparameters_sweep_plots.py # Generates sweep plots
 │   └── setup_data.py             # One-time data initialization script
 ├── generate_params.py            # Generates hyperparameter combinations (params.txt)
 ├── plot_sweeps.py                # Generates interactive Plotly parallel coordinates plot
@@ -35,28 +35,52 @@ Conventional vehicular FL frameworks typically assume dedicated onboard compute 
 ├── submit_final.sh               # Slurm array script for final comparative evaluation
 └── requirements.txt              # Python package dependencies
 ```
-## Setup and initialization
-1. Create a python enviroment 
 
+---
 
-2. Initialize the dataset:
-This step clones the external network dataset repository (CLOUDNET2026-QoS-Offloading.git) and partitions the CIFAR-10 dataset using a Dirichlet distribution ($\alpha_{Dir} = 0.2$) across $10$ vehicles:
+## Setup and Initialization
 
-```bash
-python src/setup_data.py
-```
+1. **Create a Python environment (Python 3.10+ required):**
+   You can use Conda (recommended), standard `venv`, or a fast resolver like `uv`.
+
+   **Option A: Using Conda (Recommended)**
+   ```bash
+   conda create -n fl_env python=3.10
+   conda activate fl_env
+   pip install -r requirements.txt
+   ```
+   **Option B: Using standard Python venv**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+   **Option C: Using uv (Fastest)**
+   ```bash
+   uv venv -p 3.10
+   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+   uv pip install -r requirements.txt
+   ```
+
+2. **Initialize the dataset:**
+   This step clones the external network dataset repository (`CLOUDNET2026-QoS-Offloading.git`) and partitions the CIFAR-10 dataset using a Dirichlet distribution ($\alpha_{Dir} = 0.2$) across $10$ vehicles:
+   ```bash
+   python src/setup_data.py
+   ```
+
+---
 
 ## Running Locally
 
-To run experiments directly via Python without a cluster scheduler, use src/main.py
+To run experiments directly via Python without a cluster scheduler, use `src/main.py`.
 
-## 1. Run Simulations
+### 1. Run Simulations
 
 Run only the dynamic policy:
 ```bash
 python src/main.py --rounds 250 --dynamic_only
 ```
-Run a specific fixed-epoch baseline (e.g. 3 epochs):
+Run a specific fixed-epoch baseline (e.g., 3 epochs):
 ```bash
 python src/main.py --rounds 250 --fixed 3
 ```
@@ -64,44 +88,43 @@ Run all baseline experiments sequentially (Dynamic and Fixed 1, 3, 5, 10, 20):
 ```bash
 python src/main.py --rounds 50
 ```
-## 2. Generate Evaluation Plots
 
-After running the simulation data generation, produce the evaluation PDF figures (saved in the plots/ directory):
+### 2. Generate Evaluation Plots
+
+After running the simulation data generation, produce the evaluation PDF figures (saved in the `plots/` directory):
 ```bash
 python src/visualization.py
 ```
+
+---
 
 ## Running on a Slurm Cluster
 
 To execute large-scale hyperparameter sweeps or full comparative evaluations on a Slurm cluster, use the provided shell scripts.
 
-1. Hyperparameter Sweeps
-Generate the parameter file (params.txt):
+### 1. Hyperparameter Sweeps
 
-```bash
-python generate_params.py --num_sweeps 100
-```
-2. Submit the parameter sweep array job:
+1. **Generate the parameter file (`params.txt`):**
+   ```bash
+   python generate_params.py --num_sweeps 100
+   ```
+2. **Submit the parameter sweep array job:**
+   ```bash
+   sbatch submit_sweep.sh
+   ```
+3. **Aggregate the sweep results once finished:**
+   ```bash
+   sbatch submit_aggregator.sh
+   ```
+4. **Generate interactive sweep visualizations (Plotly HTML):**
+   ```bash
+   python plot_sweeps.py
+   ```
 
-```bash
-sbatch submit_sweep.sh
-```
-3. Aggregate the sweep results once finished:
+### 2. Final Comparative Evaluation
 
-```bash
-sbatch submit_aggregator.sh
-```
-4. Generate interactive sweep visualizations (Plotly HTML):
-
-```bash
-python plot_sweeps.py
-```
-
-## 2. Final Comparative Evaluation
 To run the complete comparative benchmark across the proposed dynamic policy and all fixed-epoch baselines (1, 3, 5, 10, 20 epochs) as a parallel array job:
-
 ```bash
 sbatch submit_final.sh
 ```
-Note: This script dispatches array tasks (0 to 5) running main.py --rounds 250 in parallel using allocated GPU resources
-
+*Note: This script dispatches array tasks (0 to 5) running `main.py --rounds 250` in parallel using allocated GPU resources.*
