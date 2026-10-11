@@ -1,10 +1,9 @@
 import argparse
 from pathlib import Path
-from typing import Dict
 
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 EXPERIMENTS = ["dynamic", "fixed_1", "fixed_3", "fixed_5", "fixed_10", "fixed_20"]
 
@@ -70,7 +69,7 @@ def apply_moving_average(series: pd.Series, window: int = 10) -> pd.Series:
     return series.rolling(window=window, min_periods=1).mean()
 
 
-def load_metrics_data(job_id: str) -> Dict[str, pd.DataFrame]:
+def load_metrics_data(job_id: str) -> dict[str, pd.DataFrame]:
     """Loads CSV files for all experiments into a dictionary."""
     loaded_data = {}
     for exp in EXPERIMENTS:
@@ -89,7 +88,7 @@ def load_metrics_data(job_id: str) -> Dict[str, pd.DataFrame]:
     return loaded_data
 
 
-def plot_learning_curve(data: Dict[str, pd.DataFrame], output_dir: Path):
+def plot_learning_curve(data: dict[str, pd.DataFrame], output_dir: Path):
     """Figure 1: Learning Curve (Validation Loss vs Rounds)"""
     fig, ax = plt.subplots(figsize=(8, 5))
 
@@ -113,7 +112,7 @@ def plot_learning_curve(data: Dict[str, pd.DataFrame], output_dir: Path):
     plt.close(fig)
 
 
-def plot_cost_efficiency(data: Dict[str, pd.DataFrame], output_dir: Path):
+def plot_cost_efficiency(data: dict[str, pd.DataFrame], output_dir: Path):
     """Figure 2: Network Efficiency (Validation Loss vs Total Cost)"""
     fig, ax = plt.subplots(figsize=(8, 5))
 
@@ -142,7 +141,7 @@ def plot_cost_efficiency(data: Dict[str, pd.DataFrame], output_dir: Path):
     plt.close(fig)
 
 
-def plot_cumulative_tradeoffs(data: Dict[str, pd.DataFrame], output_dir: Path):
+def plot_cumulative_tradeoffs(data: dict[str, pd.DataFrame], output_dir: Path):
     """Figure 3: Cumulative Trade-offs Grid (2x2)"""
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))
     fig.suptitle("Cumulative System Metrics Over Time", fontsize=16)
@@ -177,7 +176,7 @@ def plot_cumulative_tradeoffs(data: Dict[str, pd.DataFrame], output_dir: Path):
     plt.close(fig)
 
 
-def plot_client_states(data: Dict[str, pd.DataFrame], output_dir: Path):
+def plot_client_states(data: dict[str, pd.DataFrame], output_dir: Path):
     """Figure 4: Client State Distribution (Stacked Bar)"""
     labels_list = []
     syncs, continues, waits, dropped = [], [], [], []

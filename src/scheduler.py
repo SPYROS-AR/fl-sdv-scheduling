@@ -1,13 +1,15 @@
 import logging
+
 import datasets
 import flwr as fl
 import pandas as pd
 from torch.utils.data import DataLoader
-from torchvision.transforms import Compose, ToTensor, Normalize
-from data_setup import setup_dataset
+from torchvision.transforms import Compose, Normalize, ToTensor
+
 from client import FLVehicle
+from constants import BATCH_SIZE, SEED, TEST_SPLIT
+from data_setup import setup_dataset
 from server import DynamicFLStrategy
-from constants import BATCH_SIZE, TEST_SPLIT, SEED
 
 datasets.utils.logging.set_verbosity_error()
 logging.basicConfig(level=logging.INFO, filename="results.log", filemode="a")
@@ -54,11 +56,13 @@ def run_simulation(
     beta: float = 1.0,
     gamma: float = 0.05,
     delta: float = 20.0,
-    experiments=["dynamic"],
+    experiments=None,
     gpus_per_client: float = 0.1,
     job_id: str = "",
 ):
 
+    if experiments == None:
+        experiments = ["dynamic"]
     print("Loading Federated Dataset...")
     fds = setup_dataset()
     all_results = {}
@@ -109,4 +113,3 @@ def run_simulation(
         }
 
     return all_results
-

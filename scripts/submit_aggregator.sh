@@ -8,8 +8,6 @@
 #SBATCH --mem=8G
 #SBATCH --partition=yoda
 
-conda activate fl_env
-
 echo "Starting array aggregation..."
 
 python src/compare_sweep.py

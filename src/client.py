@@ -1,24 +1,25 @@
 import warnings
 from collections import OrderedDict
+
+import flwr as fl
 import numpy as np
 import scipy.optimize
-from scipy.optimize import OptimizeWarning
 import torch
-import torch.nn as nn
+from scipy.optimize import OptimizeWarning
+from torch import nn
 from torch.utils.data import DataLoader
-import flwr as fl
 
 import model
 from constants import (
     ALPHA,
     BETA,
-    GAMMA,
     DELTA,
     DEVICE,
-    MODEL_SIZE_MB,
-    LEARNING_RATE,
-    MOMENTUM,
     EMA_WEIGHT,
+    GAMMA,
+    LEARNING_RATE,
+    MODEL_SIZE_MB,
+    MOMENTUM,
 )
 
 

@@ -2,19 +2,19 @@ import csv
 import math
 import os
 import random
-from typing import Dict, List, Optional, Tuple, Union
+
 import flwr as fl
+import pandas as pd
 from flwr.common import FitIns, FitRes, Parameters, Scalar
 from flwr.server.client_proxy import ClientProxy
-import pandas as pd
 
 from constants import (
+    BW_THRESHOLD,
+    GAIN_THRESHOLD,
     MAX_ALLOWED_DRIFT,
-    TOTAL_BANDWIDTH,
     MODEL_SIZE_MB,
     TAU_CONTINUE,
-    GAIN_THRESHOLD,
-    BW_THRESHOLD,
+    TOTAL_BANDWIDTH,
 )
 
 
@@ -49,7 +49,7 @@ class CSVLogger:
     def stage_round_metrics(self, round_num: int, row: list):
         self.pending_metrics[round_num] = row
 
-    def commit_round_metrics(self, round_num: int, val_loss: Optional[float]):
+    def commit_round_metrics(self, round_num: int, val_loss: float | None):
         if round_num in self.pending_metrics:
             row = self.pending_metrics.pop(round_num)
             row.append(val_loss if val_loss is not None else "")
@@ -86,7 +86,7 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         server_round: int,
         parameters: Parameters,
         client_manager: fl.server.client_manager.ClientManager,
-    ) -> List[Tuple[ClientProxy, FitIns]]:
+    ) -> list[tuple[ClientProxy, FitIns]]:
         base_configs = super().configure_fit(server_round, parameters, client_manager)
         custom_configs = []
         n_clients = len(base_configs)
@@ -114,9 +114,9 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
     def aggregate_fit(
         self,
         server_round: int,
-        results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
-    ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
+        results: list[tuple[ClientProxy, FitRes]],
+        failures: list[tuple[ClientProxy, FitRes] | BaseException],
+    ) -> tuple[Parameters | None, dict[str, Scalar]]:
         valid_results = []
         current_bw_used = 0.0
         r_syncs = r_continues = r_waits = r_dropped = 0

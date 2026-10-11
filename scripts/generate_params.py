@@ -1,4 +1,5 @@
 import argparse
+
 import numpy as np
 
 
@@ -14,8 +15,10 @@ def generate_parameters(num_sweeps: int, output_file: str = "params.txt"):
     deltas = np.random.uniform(10.0, 30.0, num_sweeps)
 
     with open(output_file, "w") as f:
-        for i in range(num_sweeps):
-            f.write(f"{alphas[i]:.6f} {betas[i]:.4f} {gammas[i]:.6f} {deltas[i]:.4f}\n")
+        f.writelines(
+            f"{alphas[i]:.6f} {betas[i]:.4f} {gammas[i]:.6f} {deltas[i]:.4f}\n"
+            for i in range(num_sweeps)
+        )
 
     print(
         f"Successfully generated {num_sweeps} parameter combinations in {output_file}."
@@ -35,4 +38,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     generate_parameters(args.num_sweeps)
-
