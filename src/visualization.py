@@ -145,7 +145,9 @@ def load_metrics_data(job_id: str = "") -> dict[str, pd.DataFrame]:
     return loaded_data
 
 
-def plot_required_metrics(data: dict[str, pd.DataFrame], output_dir: Path):
+def plot_required_metrics(
+    data: dict[str, pd.DataFrame], output_dir: Path, job_id: str = ""
+):
     """Generate accuracy-vs-cost/time, cumulative compute, and drift figures."""
     plot_specs = [
         {
@@ -230,10 +232,17 @@ def plot_required_metrics(data: dict[str, pd.DataFrame], output_dir: Path):
                 va="center",
             )
         fig.tight_layout()
-        destination = output_dir / spec["filename"]
-        fig.savefig(destination, dpi=300, bbox_inches="tight")
+        base_name = spec["filename"]
+        if job_id:
+            p = Path(base_name)
+            suffixed_dest = output_dir / f"{p.stem}_{job_id}{p.suffix}"
+            fig.savefig(suffixed_dest, dpi=300, bbox_inches="tight")
+            print(f"Saved: {suffixed_dest}")
+
+        main_dest = output_dir / base_name
+        fig.savefig(main_dest, dpi=300, bbox_inches="tight")
         plt.close(fig)
-        print(f"Saved: {destination}")
+        print(f"Saved: {main_dest}")
 
 
 def main(job_id: str = ""):
@@ -244,7 +253,7 @@ def main(job_id: str = ""):
     if not loaded_data:
         print("No metrics files found. Run the simulation before plotting.")
         return
-    plot_required_metrics(loaded_data, output_dir)
+    plot_required_metrics(loaded_data, output_dir, job_id=job_id)
     print(f"Four evaluation figures saved in {output_dir.resolve()}")
 
 

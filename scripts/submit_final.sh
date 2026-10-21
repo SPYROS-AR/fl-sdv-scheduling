@@ -15,11 +15,11 @@ DIRICHLET_ALPHA=${1:-0.1}
 JOB_SUFFIX="a$(echo "$DIRICHLET_ALPHA" | tr -d '.')"
 
 EXPERIMENTS=(
-  "--dynamic_only --dirichlet-alpha $DIRICHLET_ALPHA --job-id dyn_${JOB_SUFFIX}"
-  "--fixed 1 --dirichlet-alpha $DIRICHLET_ALPHA --job-id f1_${JOB_SUFFIX}"
-  "--fixed 5 --dirichlet-alpha $DIRICHLET_ALPHA --job-id f5_${JOB_SUFFIX}"
-  "--fixed 10 --dirichlet-alpha $DIRICHLET_ALPHA --job-id f10_${JOB_SUFFIX}"
-  "--fedprox-only --fedprox-epochs 5 --fedprox-mu 0.01 --dirichlet-alpha $DIRICHLET_ALPHA --job-id prox5_${JOB_SUFFIX}"
+  "--dynamic_only --dirichlet-alpha $DIRICHLET_ALPHA --job-id ${JOB_SUFFIX}"
+  "--fixed 1 --dirichlet-alpha $DIRICHLET_ALPHA --job-id ${JOB_SUFFIX}"
+  "--fixed 5 --dirichlet-alpha $DIRICHLET_ALPHA --job-id ${JOB_SUFFIX}"
+  "--fixed 10 --dirichlet-alpha $DIRICHLET_ALPHA --job-id ${JOB_SUFFIX}"
+  "--fedprox-only --fedprox-epochs 5 --fedprox-mu 0.01 --dirichlet-alpha $DIRICHLET_ALPHA --job-id ${JOB_SUFFIX}"
 )
 
 CURRENT_ARG=${EXPERIMENTS[$SLURM_ARRAY_TASK_ID]}
