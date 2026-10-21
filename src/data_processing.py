@@ -32,7 +32,6 @@ def _compute_critical_workload(row: pd.Series) -> float:
     load += min(MAX_UE_PENALTY, (ues / UE_NORMALIZATION) * MAX_UE_PENALTY)
     if is_handover:
         load += HANDOVER_LOAD_PENALTY
-
     return round(min(load, MAX_PERMISSIBLE_LOAD), 3)
 
 
@@ -41,11 +40,9 @@ def _compute_effective_throughput(row: pd.Series) -> float:
     rssi = row.get("mec_rssi_dbm", -70.0)
     ues = max(1, row.get("num_connected_ues", 1))
     load_ratio = 1.0 - (row.get("mec_load_pct", 0.0) / 100.0)
-
     snr_linear = 10 ** (max(0.0, rssi + DEFAULT_NOISE_FLOOR_DBM) / 10.0)
     spectral_eff = np.log2(1.0 + snr_linear)
     throughput = (bw * spectral_eff / ues) * load_ratio
-
     return round(max(THROUGHPUT_FLOOR_MBPS, throughput), 2)
 
 
@@ -56,20 +53,17 @@ def load_and_clean_dataset(
         raise FileNotFoundError(f"Source dataset not found at {filepath}")
 
     df = pd.read_csv(filepath)
-
     for flag in ["handover_active", "mec_available"]:
         if flag in df.columns:
             df[flag] = df[flag].astype(int)
 
     df["u_crit_t"] = df.apply(_compute_critical_workload, axis=1)
     df["effective_throughput_mbps"] = df.apply(_compute_effective_throughput, axis=1)
-
     if "scenario" in df.columns:
         df = pd.get_dummies(df, columns=["scenario"], dtype=int)
 
     cleaned_df = df.dropna()
-    os.makedirs(
-        os.path.dirname("dataset/data/cleaned_network_dataset.csv"), exist_ok=True
-    )
+    output_dir = os.path.dirname("dataset/data/cleaned_network_dataset.csv")
+    os.makedirs(output_dir, exist_ok=True)
     cleaned_df.to_csv("dataset/data/cleaned_network_dataset.csv", index=False)
     return cleaned_df

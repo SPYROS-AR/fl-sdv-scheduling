@@ -1,12 +1,18 @@
 # Federated Learning in Software-Defined Vehicles (SDVs): Optimizing Communication Frequency
 
-This repository contains the implementation and experimental evaluation code for the research paper: **"Federated Learning in SDVs: Optimizing Communication Frequency"** by Spyridon Arvanitis.
+This repository contains the implementation, experimental evaluation framework, and manuscript for the research paper: **"Federated Learning in SDVs: Optimizing Communication Frequency"** by Spyridon Arvanitis.
 
 ## Overview
 
 Deploying Federated Learning (FL) on Software-Defined Vehicles (SDVs) requires balancing wireless transmission overhead, client model drift, and onboard compute resource contention with safety-critical vehicle workloads (such as ADAS perception and trajectory planning). 
 
-Conventional vehicular FL frameworks typically assume dedicated onboard compute and rely on static local training intervals, which can lead to uplink cellular congestion and compute starvation for co-located real-time service. This project provides a runtime heuristic policy engine that dynamically regulates local training epochs and client upload schedules based on available compute slack, instantaneous link throughput, and observed local loss progress.
+Conventional vehicular FL frameworks typically assume dedicated onboard compute and rely on static local training intervals, which can lead to uplink cellular congestion and compute starvation for co-located real-time services. This project implements a runtime heuristic policy engine that dynamically regulates local training epochs and client upload schedules based on available compute slack, instantaneous link throughput, and predicted local learning gain.
+
+### Key Capabilities
+- **Three-State Runtime Policy Engine:** Clients transition dynamically among `WAIT` (idle to yield execution to safety tasks or save energy when link is poor and gain is negligible), `CONTINUE` (autonomous local training with persistent local weights), and `SYNC` (parameter upload).
+- **Bounded Non-Linear Extrapolation:** Predicts empirical validation loss reduction via bounded exponential curve fitting ($L(e) \approx L_\infty + A e^{-B e}$) before executing local epochs.
+- **Physical Parameter & Network Accounting:** Exact FP32 parameter footprint accounting ($9.31$ MiB for ResNet-9) and true vector Euclidean parameter divergence ($\|\mathbf{w}_{\text{local}} - \mathbf{w}_{\text{global}}\|_2$).
+- **Algorithmic Baselines & Heterogeneity:** Benchmarks against static epoch baselines ($E \in \{1, 5, 10\}$) and FedProx under symmetric Dirichlet non-IID partitioning ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$).
 
 ---
 
@@ -14,56 +20,47 @@ Conventional vehicular FL frameworks typically assume dedicated onboard compute 
 
 ```text
 .
+├── paper.tex                     # Camera-ready IEEE conference LaTeX manuscript
+├── plots/                        # Generated publication evaluation figures (PDF)
+│   ├── fig1_accuracy_vs_transmitted_data.pdf
+│   ├── fig2_accuracy_vs_wall_time.pdf
+│   ├── fig3_cumulative_compute_interference.pdf
+│   └── fig4_model_drift.pdf
+├── scripts/                      # Slurm cluster submission & analysis scripts
+│   ├── submit_final.sh           # Main Slurm array job for 250-round baseline suite
+│   ├── submit_sweep.sh           # Slurm array script for hyperparameter sweeps
+│   ├── submit_aggregator.sh      # Slurm script for parsing sweep outputs
+│   ├── generate_params.py        # Generates hyperparameter combinations (params.txt)
+│   └── plot_sweeps.py            # Generates interactive Plotly parallel coordinates
 ├── src/
-│   ├── client.py                 # FLVehicle client implementation (dynamic and fixed policies)
-│   ├── server.py                 # DynamicFLStrategy and CSV metrics logging
-│   ├── scheduler.py              # Flower simulation orchestrator and client factory
-│   ├── model.py                  # ResNet-9 architecture with Group Normalization
-│   ├── constants.py              # Simulation, networking, and utility hyperparameters
-│   ├── data_setup.py             # External repository cloning and Dirichlet data partitioning
-│   ├── data_processing.py        # Network dataset cleaning and feature extraction
-│   ├── main.py                   # Main CLI entry point for simulations
-│   ├── sweep_worker.py           # Single-worker script for hyperparameter sweeps
-│   ├── compare_sweep.py          # Parses sweep outputs and ranks parameter sets
+│   ├── client.py                 # FLVehicle client implementation (3-state dynamic & FedProx)
+│   ├── server.py                 # DynamicFLStrategy and round-level CSV metrics logger
+│   ├── scheduler.py              # Flower simulation orchestrator and ClientFactory caching
+│   ├── model.py                  # ResNet-9 with Group Normalization (CIFAR-10 & GTSRB)
+│   ├── constants.py              # System, networking, and utility policy hyperparameters
+│   ├── data_setup.py             # External network dataset & Dirichlet non-IID partitioning
+│   ├── data_processing.py        # Network dataset cleaning and vehicular load modeling
+│   ├── main.py                   # Main CLI entry point for local and cluster simulations
+│   ├── sweep_worker.py           # Single-worker runner for hyperparameter sweeps
+│   ├── compare_sweep.py          # Parses sweep outputs and Pareto ranks parameter sets
 │   ├── visualization.py          # Generates evaluation PDF figures (Figures 1–4)
-│   ├── hyperparameters_sweep_plots.py # Generates sweep plots
-│   └── setup_data.py             # One-time data initialization script
-├── generate_params.py            # Generates hyperparameter combinations (params.txt)
-├── plot_sweeps.py                # Generates interactive Plotly parallel coordinates plot
-├── submit_sweep.sh               # Slurm array script for hyperparameter sweeps
-├── submit_aggregator.sh          # Slurm script for aggregating sweep results
-├── submit_final.sh               # Slurm array script for final comparative evaluation
+│   └── hyperparameters_sweep_plots.py # Generates sweep trade-off plots
 └── requirements.txt              # Python package dependencies
 ```
 
 ---
 
-## Setup and Initialization
+## Setup and Installation
 
-1. **Create a Python environment (Python 3.10+ required):**
-   You can use Conda (recommended), standard `venv`, or a fast resolver like `uv`.
-
-   **Option A: Using Conda (Recommended)**
+1. **Environment Setup (Python 3.10+):**
    ```bash
-   conda create -n fl_env python=3.10
-   conda activate fl_env
+   python3 -m venv .venv
+   source .venv/bin/activate
    pip install -r requirements.txt
    ```
-   **Option B: Using standard Python venv**
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-   **Option C: Using uv (Fastest)**
-   ```bash
-   uv venv -p 3.10
-   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
-   uv pip install -r requirements.txt
-   ```
 
-2. **Initialize the dataset:**
-   This step clones the external network dataset repository (`CLOUDNET2026-QoS-Offloading.git`) and partitions the CIFAR-10 dataset using a Dirichlet distribution ($\alpha_{Dir} = 0.2$) across $10$ vehicles:
+2. **Network Dataset Initialization:**
+   The simulation utilizes empirical V2X channel and vehicular load traces generated from the external dataset:
    ```bash
    python src/setup_data.py
    ```
@@ -72,59 +69,58 @@ Conventional vehicular FL frameworks typically assume dedicated onboard compute 
 
 ## Running Locally
 
-To run experiments directly via Python without a cluster scheduler, use `src/main.py`.
+Simulations can be executed directly using `src/main.py`. The runner automatically detects available GPUs and falls back to CPU execution if CUDA is unavailable.
 
-### 1. Run Simulations
-
-Run only the dynamic policy:
+### 1. Run Dynamic Policy
 ```bash
-python src/main.py --rounds 250 --dynamic_only
-```
-Run a specific fixed-epoch baseline (e.g., 3 epochs):
-```bash
-python src/main.py --rounds 250 --fixed 3
-```
-Run all baseline experiments sequentially (Dynamic and Fixed 1, 3, 5, 10, 20):
-```bash
-python src/main.py --rounds 50
+python src/main.py --rounds 50 --dataset cifar10 --dirichlet-alpha 0.1 --dynamic_only --job-id dyn_a01
 ```
 
-### 2. Generate Evaluation Plots
+### 2. Run Baselines
+- **Fixed Epoch FedAvg ($E = 5$):**
+  ```bash
+  python src/main.py --rounds 50 --dataset cifar10 --dirichlet-alpha 0.1 --fixed 5 --job-id f5_a01
+  ```
+- **Fixed Epoch FedProx ($E = 5, \mu = 0.01$):**
+  ```bash
+  python src/main.py --rounds 50 --dataset cifar10 --dirichlet-alpha 0.1 --fedprox-only --fedprox-epochs 5 --fedprox-mu 0.01 --job-id prox5_a01
+  ```
 
-After running the simulation data generation, produce the evaluation PDF figures (saved in the `plots/` directory):
+### 3. Generate Evaluation Figures
+After running experiments, generate camera-ready PDF figures into `plots/`:
 ```bash
-python src/visualization.py
+python src/visualization.py --job-id a01
 ```
 
 ---
 
-## Running on a Slurm Cluster
+## Running on Slurm Cluster (`yoda`)
 
-To execute large-scale hyperparameter sweeps or full comparative evaluations on a Slurm cluster, use the provided shell scripts.
+To dispatch full 250-round baseline evaluations across Dirichlet partitions ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$):
 
-### 1. Hyperparameter Sweeps
-
-1. **Generate the parameter file (`params.txt`):**
-   ```bash
-   python generate_params.py --num_sweeps 100
-   ```
-2. **Submit the parameter sweep array job:**
-   ```bash
-   sbatch submit_sweep.sh
-   ```
-3. **Aggregate the sweep results once finished:**
-   ```bash
-   sbatch submit_aggregator.sh
-   ```
-4. **Generate interactive sweep visualizations (Plotly HTML):**
-   ```bash
-   python plot_sweeps.py
-   ```
-
-### 2. Final Comparative Evaluation
-
-To run the complete comparative benchmark across the proposed dynamic policy and all fixed-epoch baselines (1, 3, 5, 10, 20 epochs) as a parallel array job:
 ```bash
-sbatch submit_final.sh
+# Submit baseline suite for alpha = 0.1 (Dynamic, Fixed 1, Fixed 5, Fixed 10, FedProx 5)
+sbatch scripts/submit_final.sh 0.1
+
+# Submit baseline suite for alpha = 0.3
+sbatch scripts/submit_final.sh 0.3
+
+# Submit baseline suite for alpha = 0.5
+sbatch scripts/submit_final.sh 0.5
 ```
-*Note: This script dispatches array tasks (0 to 5) running `main.py --rounds 250` in parallel using allocated GPU resources.*
+
+Outputs are logged as `metrics_<experiment>_<job-id>.csv` and can be visualized via `python src/visualization.py`.
+
+---
+
+## Citation & Paper
+
+If you use this codebase or framework in your research, please cite:
+```bibtex
+@inproceedings{arvanitis2026flsdv,
+  title={Federated Learning in SDVs: Optimizing Communication Frequency},
+  author={Arvanitis, Spyridon},
+  booktitle={IEEE Conference Proceedings},
+  year={2026}
+}
+```

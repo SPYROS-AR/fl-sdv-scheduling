@@ -2,48 +2,119 @@ import logging
 
 import datasets
 import flwr as fl
+import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
-from torchvision.transforms import Compose, Normalize, ToTensor
+from torchvision.transforms import Compose, Normalize, Resize, ToTensor
 
 from client import FLVehicle
-from constants import BATCH_SIZE, SEED, TEST_SPLIT
-from data_setup import setup_dataset
+from constants import (
+    BATCH_SIZE,
+    DIRICHLET_ALPHA,
+    FEDPROX_MU,
+    SEED,
+    TEST_SPLIT,
+)
+from data_setup import DictImageSubset, setup_dataset
 from server import DynamicFLStrategy
 
 datasets.utils.logging.set_verbosity_error()
 logging.basicConfig(level=logging.INFO, filename="results.log", filemode="a")
 
 
+def weighted_accuracy(metrics):
+    """Return sample-weighted validation accuracy across evaluated clients."""
+    total_examples = sum(num_examples for num_examples, _ in metrics)
+    if total_examples <= 0:
+        return {"accuracy": 0.0}
+    accuracy = (
+        sum(
+            num_examples * float(client_metrics.get("accuracy", 0.0))
+            for num_examples, client_metrics in metrics
+        )
+        / total_examples
+    )
+    return {"accuracy": accuracy}
+
+
 class ClientFactory:
-    def __init__(self, dataset, config: dict):
+    def __init__(self, dataset, config: dict, dataset_name: str = "cifar10"):
         self.dataset = dataset
         self.config = config
-        self.transforms = Compose(
-            [ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
-        )
+        self.dataset_name = dataset_name.lower()
+        transforms = []
+        if self.dataset_name == "gtsrb":
+            transforms.append(Resize((32, 32)))
+        transforms.extend([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        self.transforms = Compose(transforms)
+        self.clients = {}
 
     def _apply_transforms(self, batch):
-        batch["img"] = [self.transforms(img) for img in batch["img"]]
+        batch["img"] = [self.transforms(image) for image in batch["img"]]
         return batch
 
     def build_client(self, cid: str) -> fl.client.Client:
-        partition = self.dataset.load_partition(int(cid), "train").train_test_split(
-            test_size=TEST_SPLIT, seed=SEED
-        )
-        partition = partition.with_transform(self._apply_transforms)
+        client_id = int(cid)
+        if client_id in self.clients:
+            return self.clients[client_id].to_client()
+
+        if self.dataset_name == "gtsrb":
+            indices = np.asarray(self.dataset.client_indices[client_id]).copy()
+            rng = np.random.default_rng(SEED + client_id)
+            rng.shuffle(indices)
+            if len(indices) < 2:
+                raise ValueError(
+                    f"GTSRB client {client_id} has fewer than two examples."
+                )
+
+            num_val = max(1, int(round(len(indices) * TEST_SPLIT)))
+            num_val = min(num_val, len(indices) - 1)
+            val_indices, train_indices = indices[:num_val], indices[num_val:]
+
+            train_dataset = DictImageSubset(
+                self.dataset.train_dataset, train_indices, self.transforms
+            )
+            val_dataset = DictImageSubset(
+                self.dataset.train_dataset, val_indices, self.transforms
+            )
+            num_classes = 43
+        else:
+            partition = self.dataset.load_partition(
+                client_id, "train"
+            ).train_test_split(
+                test_size=TEST_SPLIT,
+                seed=SEED,
+            )
+            partition = partition.with_transform(self._apply_transforms)
+            train_dataset = partition["train"]
+            val_dataset = partition["test"]
+            num_classes = 10
 
         train_loader = DataLoader(
-            partition["train"], batch_size=BATCH_SIZE, shuffle=True
+            train_dataset,
+            batch_size=BATCH_SIZE,
+            shuffle=True,
         )
-        val_loader = DataLoader(partition["test"], batch_size=BATCH_SIZE, shuffle=False)
+        val_loader = DataLoader(
+            val_dataset,
+            batch_size=BATCH_SIZE,
+            shuffle=False,
+        )
 
-        vehicle = FLVehicle(int(cid), train_loader, val_loader)
-
-        vehicle.alpha, vehicle.beta = self.config["alpha"], self.config["beta"]
-        vehicle.gamma, vehicle.delta = self.config["gamma"], self.config["delta"]
+        vehicle = FLVehicle(
+            client_id,
+            train_loader,
+            val_loader,
+            num_classes=num_classes,
+            algorithm=self.config["algorithm"],
+            fedprox_mu=self.config["fedprox_mu"],
+        )
+        vehicle.alpha = self.config["alpha"]
+        vehicle.beta = self.config["beta"]
+        vehicle.gamma = self.config["gamma"]
+        vehicle.delta = self.config["delta"]
         vehicle.mode = self.config["mode"]
-
+        self.clients[client_id] = vehicle
         return vehicle.to_client()
 
 
@@ -59,25 +130,60 @@ def run_simulation(
     experiments=None,
     gpus_per_client: float = 0.1,
     job_id: str = "",
+    dataset_name: str = "cifar10",
+    dirichlet_alpha: float = DIRICHLET_ALPHA,
+    fedprox_mu: float = FEDPROX_MU,
 ):
-
-    if experiments == None:
+    """Run each experiment against the same federated partition and network trace."""
+    del num_samples  # Retained in signature for compatibility with existing callers.
+    if experiments is None:
         experiments = ["dynamic"]
-    print("Loading Federated Dataset...")
-    fds = setup_dataset()
+    if dirichlet_alpha <= 0:
+        raise ValueError("dirichlet_alpha must be positive.")
+    if fedprox_mu < 0:
+        raise ValueError("fedprox_mu must be non-negative.")
+
+    print(
+        f"Loading federated dataset: {dataset_name}, Dirichlet alpha={dirichlet_alpha}"
+    )
+    federated_dataset = setup_dataset(
+        dataset_name=dataset_name,
+        alpha=dirichlet_alpha,
+    )
     all_results = {}
 
     for exp in experiments:
         exp_name = f"{exp}_{job_id}" if job_id else exp
+        if exp == "dynamic_fedprox":
+            mode = "dynamic"
+            algorithm = "fedprox"
+        elif exp.startswith("fedprox_"):
+            local_epochs = int(exp.split("_", 1)[1])
+            if local_epochs <= 0:
+                raise ValueError(f"Invalid FedProx epoch count in experiment '{exp}'.")
+            mode = f"fixed_{local_epochs}"
+            algorithm = "fedprox"
+        elif exp == "dynamic" or exp.startswith("fixed_"):
+            mode = exp
+            algorithm = "fedavg"
+        else:
+            raise ValueError(f"Unsupported experiment name: {exp}")
+
         client_config = {
             "alpha": alpha,
             "beta": beta,
             "gamma": gamma,
             "delta": delta,
-            "mode": exp,
+            "mode": mode,
+            "algorithm": algorithm,
+            "fedprox_mu": fedprox_mu,
         }
+        factory = ClientFactory(
+            federated_dataset,
+            client_config,
+            dataset_name=dataset_name,
+        )
 
-        factory = ClientFactory(fds, client_config)
         strategy = DynamicFLStrategy(
             df_network=df,
             alpha=alpha,
@@ -89,6 +195,7 @@ def run_simulation(
             fraction_evaluate=1.0,
             min_fit_clients=num_vehicles,
             min_available_clients=num_vehicles,
+            evaluate_metrics_aggregation_fn=weighted_accuracy,
         )
 
         history = fl.simulation.start_simulation(
@@ -100,16 +207,22 @@ def run_simulation(
         )
 
         losses = (
-            [val[1] for val in history.losses_distributed]
+            [value for _, value in history.losses_distributed]
             if getattr(history, "losses_distributed", None)
             else []
         )
         all_results[exp] = {
-            "mbs": strategy.total_c_net,
+            "mbs": strategy.total_transmitted_mb,
+            "network_cost": strategy.total_c_net,
             "losses": losses,
             "interference": strategy.total_c_comp,
             "drift": strategy.total_c_drift,
             "utility": strategy.total_utility,
+            "dataset": dataset_name,
+            "dirichlet_alpha": dirichlet_alpha,
+            "algorithm": algorithm,
+            "mode": mode,
+            "fedprox_mu": fedprox_mu if algorithm == "fedprox" else 0.0,
         }
 
     return all_results

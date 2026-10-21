@@ -7,17 +7,19 @@
 #SBATCH --mem=32G
 #SBATCH --output=logs/final_%A_%a.out
 #SBATCH --error=logs/final_%A_%a.err
-#SBATCH --array=0-5
+#SBATCH --array=0-4
 
 mkdir -p logs
 
+DIRICHLET_ALPHA=${1:-0.1}
+JOB_SUFFIX="a$(echo "$DIRICHLET_ALPHA" | tr -d '.')"
+
 EXPERIMENTS=(
-  "--dynamic_only"
-  "--fixed 1"
-  "--fixed 3"
-  "--fixed 5"
-  "--fixed 10"
-  "--fixed 20"
+  "--dynamic_only --dirichlet-alpha $DIRICHLET_ALPHA --job-id dyn_${JOB_SUFFIX}"
+  "--fixed 1 --dirichlet-alpha $DIRICHLET_ALPHA --job-id f1_${JOB_SUFFIX}"
+  "--fixed 5 --dirichlet-alpha $DIRICHLET_ALPHA --job-id f5_${JOB_SUFFIX}"
+  "--fixed 10 --dirichlet-alpha $DIRICHLET_ALPHA --job-id f10_${JOB_SUFFIX}"
+  "--fedprox-only --fedprox-epochs 5 --fedprox-mu 0.01 --dirichlet-alpha $DIRICHLET_ALPHA --job-id prox5_${JOB_SUFFIX}"
 )
 
 CURRENT_ARG=${EXPERIMENTS[$SLURM_ARRAY_TASK_ID]}

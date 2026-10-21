@@ -27,7 +27,10 @@ class ConvGNBlock(nn.Module):
 
 class ResNet9FL(nn.Module):
     def __init__(
-        self, in_channels: int = 3, num_classes: int = 10, dropout: float = 0.2
+        self,
+        in_channels: int = 3,
+        num_classes: int = 10,
+        dropout: float = 0.2,
     ):
         super().__init__()
         self.prep = ConvGNBlock(in_channels, 64, pool=True)
@@ -75,5 +78,6 @@ class ResNet9FL(nn.Module):
         return self.classifier(x)
 
 
-def load_model():
-    return ResNet9FL().to(DEVICE)
+def load_model(num_classes: int = 10):
+    """Create a ResNet-9 FL model with dataset-specific output classes."""
+    return ResNet9FL(num_classes=num_classes).to(DEVICE)
