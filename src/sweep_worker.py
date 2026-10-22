@@ -5,7 +5,7 @@ import os
 import pandas as pd
 import torch
 
-from constants import NUM_SAMPLES, NUM_VEHICLES
+from constants import NUM_VEHICLES
 from scheduler import run_simulation
 
 
@@ -28,7 +28,6 @@ if __name__ == "__main__":
     results = run_simulation(
         df,
         NUM_VEHICLES,
-        NUM_SAMPLES,
         alpha=args.alpha,
         beta=args.beta,
         gamma=args.gamma,

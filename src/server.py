@@ -1,12 +1,14 @@
 import csv
 import math
-import os
 import random
 import time
+from typing import Optional, Tuple, Union
 
 import flwr as fl
+import numpy as np
 import pandas as pd
 from flwr.common import (
+    EvaluateRes,
     FitIns,
     FitRes,
     Parameters,
@@ -16,8 +18,12 @@ from flwr.common import (
 from flwr.server.client_proxy import ClientProxy
 
 from constants import (
+    ALPHA,
+    BETA,
     BW_THRESHOLD,
+    DELTA,
     GAIN_THRESHOLD,
+    GAMMA,
     MAX_ALLOWED_DRIFT,
     MODEL_SIZE_MB,
     TAU_CONTINUE,
@@ -51,6 +57,7 @@ class CSVLogger:
         "wall_time_s",
         "val_loss",
         "global_accuracy",
+        "centralized_accuracy",
     ]
 
     def __init__(self, exp_name: str):
@@ -70,6 +77,7 @@ class CSVLogger:
         global_accuracy,
         round_time_s: float,
         wall_time_s: float,
+        centralized_accuracy=None,
     ):
         if round_num not in self.pending_metrics:
             return
@@ -80,6 +88,7 @@ class CSVLogger:
                 wall_time_s,
                 val_loss if val_loss is not None else "",
                 global_accuracy if global_accuracy is not None else "",
+                centralized_accuracy if centralized_accuracy is not None else "",
             ]
         )
         with open(self.csv_file, "a", newline="") as file:
@@ -90,10 +99,10 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
     def __init__(
         self,
         df_network: pd.DataFrame,
-        alpha: float = 0.002,
-        beta: float = 1.0,
-        gamma: float = 0.05,
-        delta: float = 20.0,
+        alpha: float = ALPHA,
+        beta: float = BETA,
+        gamma: float = GAMMA,
+        delta: float = DELTA,
         exp_name: str = "dynamic",
         *args,
         **kwargs,
@@ -123,6 +132,21 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         self.total_gain = self.total_utility = 0.0
         self.total_syncs = self.total_continues = self.total_waits = 0
         self.total_dropped = 0
+        self.last_centralized_accuracy: Optional[float] = None
+
+    def evaluate(
+        self, server_round: int, parameters: Parameters
+    ) -> Optional[Tuple[float, dict[str, Scalar]]]:
+        """Override to capture centralized evaluation metrics from evaluate_fn."""
+        result = super().evaluate(server_round, parameters)
+        if result is not None:
+            _, eval_metrics = result
+            self.last_centralized_accuracy = eval_metrics.get(
+                "centralized_accuracy"
+            )
+        else:
+            self.last_centralized_accuracy = None
+        return result
 
     def configure_fit(
         self,
@@ -281,6 +305,7 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
             global_accuracy=metrics.get("accuracy"),
             round_time_s=round_time_s,
             wall_time_s=wall_time_s,
+            centralized_accuracy=self.last_centralized_accuracy,
         )
         return agg_loss, metrics
 

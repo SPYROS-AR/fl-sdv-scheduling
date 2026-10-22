@@ -192,20 +192,26 @@ def plot_required_metrics(
         fig, ax = plt.subplots(figsize=(8, 5))
         plotted = 0
         for exp_name, frame in data.items():
-            if spec["x"] not in frame.columns or spec["y"] not in frame.columns:
+            y_col = spec["y"]
+            if y_col == "global_accuracy" and "centralized_accuracy" in frame.columns:
+                # Prefer centralized test accuracy if populated
+                if pd.to_numeric(frame["centralized_accuracy"], errors="coerce").notna().any():
+                    y_col = "centralized_accuracy"
+
+            if spec["x"] not in frame.columns or y_col not in frame.columns:
                 print(
                     f"Skipping {exp_name} for {spec['filename']}: required columns missing"
                 )
                 continue
-            series = frame[[spec["x"], spec["y"]]].copy()
+            series = frame[[spec["x"], y_col]].copy()
             series[spec["x"]] = pd.to_numeric(series[spec["x"]], errors="coerce")
-            series[spec["y"]] = pd.to_numeric(series[spec["y"]], errors="coerce")
+            series[y_col] = pd.to_numeric(series[y_col], errors="coerce")
             series = series.dropna().sort_values(spec["x"])
             if series.empty:
                 continue
 
             y_values = (
-                series[spec["y"]] * 100.0 if spec["percent"] else series[spec["y"]]
+                series[y_col] * 100.0 if spec["percent"] else series[y_col]
             )
             style = _style_for(exp_name)
             ax.plot(

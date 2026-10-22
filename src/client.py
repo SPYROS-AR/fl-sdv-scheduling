@@ -19,6 +19,7 @@ from constants import (
     FEDPROX_MU,
     GAMMA,
     LEARNING_RATE,
+    MAX_CONTINUE_ROUNDS,
     MODEL_SIZE_MB,
     MOMENTUM,
 )
@@ -47,6 +48,7 @@ class FLVehicle(fl.client.NumPyClient):
         self._temp_global_model = model.load_model(num_classes=num_classes).to(DEVICE)
         self._in_continue = False
         self._last_gain = None
+        self._continue_count = 0
         self.criterion = nn.CrossEntropyLoss()
         self.mode = "dynamic"
 
@@ -116,6 +118,7 @@ class FLVehicle(fl.client.NumPyClient):
 
     def _run_fixed(self, optimizer, global_weights, init_loss, state, proximal_mu):
         self._in_continue = False
+        self._continue_count = 0
         epochs = int(self.mode.split("_", 1)[1])
         for _ in range(epochs):
             self._train_epoch(optimizer, global_weights, proximal_mu)
@@ -141,6 +144,7 @@ class FLVehicle(fl.client.NumPyClient):
         # 1. Compute Starvation: FL yields to higher-priority safety workloads
         if state["max_c_i"] < (1.0 / self.rho):
             self._in_continue = False
+            self._continue_count = 0
             return [], 0, self._empty_metrics("WAIT")
 
         # 2. Poor Channel Bandwidth AND Low Potential Learning Gain (WAIT State)
@@ -148,6 +152,7 @@ class FLVehicle(fl.client.NumPyClient):
         prior_gain = getattr(self, "_last_gain", None)
         if is_bw_poor and prior_gain is not None and prior_gain <= state["gain_threshold"]:
             self._in_continue = False
+            self._continue_count = 0
             return [], 0, self._empty_metrics("WAIT")
 
         history = [init_loss]
@@ -190,6 +195,7 @@ class FLVehicle(fl.client.NumPyClient):
 
         if epoch == 0:
             self._in_continue = False
+            self._continue_count = 0
             return [], 0, self._empty_metrics("WAIT")
 
         is_sync = state["bandwidth"] >= state["bw_threshold"]
@@ -197,10 +203,23 @@ class FLVehicle(fl.client.NumPyClient):
         # Transition to WAIT if bandwidth is constrained and progress was negligible
         if not is_sync and actual_gain <= state["gain_threshold"]:
             self._in_continue = False
+            self._continue_count = 0
             return [], 0, self._empty_metrics("WAIT")
 
-        status = "SYNC" if is_sync else "CONTINUE"
-        self._in_continue = (status == "CONTINUE")
+        if is_sync:
+            status = "SYNC"
+            self._in_continue = False
+            self._continue_count = 0
+        else:
+            self._continue_count += 1
+            if self._continue_count >= MAX_CONTINUE_ROUNDS:
+                status = "SYNC"
+                is_sync = True
+                self._in_continue = False
+                self._continue_count = 0
+            else:
+                status = "CONTINUE"
+                self._in_continue = True
 
         metrics = {
             "status": status,

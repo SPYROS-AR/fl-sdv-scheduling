@@ -20,6 +20,8 @@ Conventional vehicular FL frameworks typically assume dedicated onboard compute 
 
 ```text
 .
+├── final_metrics/                # Final evaluation metrics CSVs and Pareto sweep rankings
+├── metrics/                      # Round-level CSV logs from hyperparameter exploration runs
 ├── paper.tex                     # Camera-ready IEEE conference LaTeX manuscript
 ├── plots/                        # Generated publication evaluation figures (PDF)
 │   ├── fig1_accuracy_vs_transmitted_data.pdf
@@ -40,11 +42,13 @@ Conventional vehicular FL frameworks typically assume dedicated onboard compute 
 │   ├── constants.py              # System, networking, and utility policy hyperparameters
 │   ├── data_setup.py             # External network dataset & Dirichlet non-IID partitioning
 │   ├── data_processing.py        # Network dataset cleaning and vehicular load modeling
+│   ├── setup_data.py             # Network dataset initialization and preprocessing
 │   ├── main.py                   # Main CLI entry point for local and cluster simulations
 │   ├── sweep_worker.py           # Single-worker runner for hyperparameter sweeps
 │   ├── compare_sweep.py          # Parses sweep outputs and Pareto ranks parameter sets
 │   ├── visualization.py          # Generates evaluation PDF figures (Figures 1–4)
 │   └── hyperparameters_sweep_plots.py # Generates sweep trade-off plots
+├── sweep_outputs/                # JSON trial records from individual sweep worker runs
 └── requirements.txt              # Python package dependencies
 ```
 
@@ -73,17 +77,21 @@ Simulations can be executed directly using `src/main.py`. The runner automatical
 
 ### 1. Run Dynamic Policy
 ```bash
-python src/main.py --rounds 50 --dataset cifar10 --dirichlet-alpha 0.1 --dynamic_only --job-id dyn_a01
+python src/main.py --rounds 50 --dataset cifar10 --dirichlet-alpha 0.1 --dynamic_only --job-id a01
 ```
 
 ### 2. Run Baselines
 - **Fixed Epoch FedAvg ($E = 5$):**
   ```bash
-  python src/main.py --rounds 50 --dataset cifar10 --dirichlet-alpha 0.1 --fixed 5 --job-id f5_a01
+  python src/main.py --rounds 50 --dataset cifar10 --dirichlet-alpha 0.1 --fixed 5 --job-id a01
   ```
 - **Fixed Epoch FedProx ($E = 5, \mu = 0.01$):**
   ```bash
-  python src/main.py --rounds 50 --dataset cifar10 --dirichlet-alpha 0.1 --fedprox-only --fedprox-epochs 5 --fedprox-mu 0.01 --job-id prox5_a01
+  python src/main.py --rounds 50 --dataset cifar10 --dirichlet-alpha 0.1 --fedprox-only --fedprox-epochs 5 --fedprox-mu 0.01 --job-id a01
+  ```
+- **Dynamic FedProx ($\mu = 0.01$):**
+  ```bash
+  python src/main.py --rounds 50 --dataset cifar10 --dirichlet-alpha 0.1 --dynamic-fedprox --fedprox-mu 0.01 --job-id a01
   ```
 
 ### 3. Generate Evaluation Figures
@@ -109,7 +117,7 @@ sbatch scripts/submit_final.sh 0.3
 sbatch scripts/submit_final.sh 0.5
 ```
 
-Outputs are logged as `metrics_<experiment>_<job-id>.csv` and can be visualized via `python src/visualization.py`.
+Outputs are logged as `metrics_<experiment>_<job-id>.csv` and can be visualized via `python src/visualization.py --job-id a01`.
 
 ---
 

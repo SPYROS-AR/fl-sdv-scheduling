@@ -1,17 +1,27 @@
 import logging
+from collections import OrderedDict
+from typing import Optional, Tuple
 
 import datasets
 import flwr as fl
 import numpy as np
 import pandas as pd
+import torch
 from torch.utils.data import DataLoader
+from torchvision.datasets import CIFAR10, GTSRB
 from torchvision.transforms import Compose, Normalize, Resize, ToTensor
 
+import model
 from client import FLVehicle
 from constants import (
+    ALPHA,
     BATCH_SIZE,
+    BETA,
+    DELTA,
+    DEVICE,
     DIRICHLET_ALPHA,
     FEDPROX_MU,
+    GAMMA,
     SEED,
     TEST_SPLIT,
 )
@@ -35,6 +45,74 @@ def weighted_accuracy(metrics):
         / total_examples
     )
     return {"accuracy": accuracy}
+
+
+def build_centralized_eval_fn(dataset_name: str = "cifar10"):
+    """Return a centralized evaluation function for the global model.
+
+    The returned callable follows Flower's ``evaluate_fn`` signature:
+    ``(server_round, parameters_ndarrays, config) -> Optional[Tuple[float, dict]]``.
+    It evaluates the aggregated global model on the *official* held-out test
+    split (not the clients' local validation partitions) so that reported
+    accuracy numbers are directly comparable across experiments and papers.
+    """
+    dataset_name = dataset_name.lower()
+
+    transforms = []
+    if dataset_name == "gtsrb":
+        transforms.append(Resize((32, 32)))
+        num_classes = 43
+    else:
+        num_classes = 10
+    transforms.extend([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    eval_transforms = Compose(transforms)
+
+    if dataset_name == "gtsrb":
+        test_dataset = GTSRB(
+            root="dataset/vision", split="test", download=True, transform=eval_transforms
+        )
+    else:
+        test_dataset = CIFAR10(
+            root="dataset/vision", train=False, download=True, transform=eval_transforms
+        )
+
+    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
+
+    def evaluate(
+        server_round: int,
+        parameters_ndarrays: list[np.ndarray],
+        config: dict[str, fl.common.Scalar],
+    ) -> Optional[Tuple[float, dict]]:
+        net = model.load_model(num_classes=num_classes)
+        state_dict = OrderedDict(
+            (key, torch.as_tensor(value, device=DEVICE))
+            for key, value in zip(net.state_dict().keys(), parameters_ndarrays)
+        )
+        net.load_state_dict(state_dict, strict=True)
+        net.eval()
+
+        criterion = torch.nn.CrossEntropyLoss()
+        total_loss = 0.0
+        total_correct = 0
+        total_examples = 0
+
+        with torch.no_grad():
+            for images, labels in test_loader:
+                images = images.to(DEVICE)
+                labels = labels.to(DEVICE, dtype=torch.long)
+                logits = net(images)
+                batch_size = labels.size(0)
+                total_loss += criterion(logits, labels).item() * batch_size
+                total_correct += (logits.argmax(dim=1) == labels).sum().item()
+                total_examples += batch_size
+
+        if total_examples == 0:
+            return None
+        loss = total_loss / total_examples
+        accuracy = total_correct / total_examples
+        return loss, {"centralized_accuracy": float(accuracy)}
+
+    return evaluate
 
 
 class ClientFactory:
@@ -121,12 +199,11 @@ class ClientFactory:
 def run_simulation(
     df: pd.DataFrame,
     num_vehicles: int,
-    num_samples: int,
     num_rounds: int = 50,
-    alpha: float = 0.002,
-    beta: float = 1.0,
-    gamma: float = 0.05,
-    delta: float = 20.0,
+    alpha: float = ALPHA,
+    beta: float = BETA,
+    gamma: float = GAMMA,
+    delta: float = DELTA,
     experiments=None,
     gpus_per_client: float = 0.1,
     job_id: str = "",
@@ -135,7 +212,6 @@ def run_simulation(
     fedprox_mu: float = FEDPROX_MU,
 ):
     """Run each experiment against the same federated partition and network trace."""
-    del num_samples  # Retained in signature for compatibility with existing callers.
     if experiments is None:
         experiments = ["dynamic"]
     if dirichlet_alpha <= 0:
@@ -196,6 +272,7 @@ def run_simulation(
             min_fit_clients=num_vehicles,
             min_available_clients=num_vehicles,
             evaluate_metrics_aggregation_fn=weighted_accuracy,
+            evaluate_fn=build_centralized_eval_fn(dataset_name),
         )
 
         history = fl.simulation.start_simulation(

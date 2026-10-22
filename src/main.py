@@ -1,10 +1,14 @@
 import argparse
+
 import torch
 
 from constants import (
+    ALPHA,
+    BETA,
+    DELTA,
     DIRICHLET_ALPHA,
     FEDPROX_MU,
-    NUM_SAMPLES,
+    GAMMA,
     NUM_VEHICLES,
 )
 from data_processing import load_and_clean_dataset
@@ -33,6 +37,12 @@ def main():
         "--dynamic_only",
         action="store_true",
         help="Run only the dynamic FedAvg policy",
+    )
+    parser.add_argument(
+        "--dynamic-fedprox",
+        "--dynamic_fedprox",
+        action="store_true",
+        help="Run only the dynamic FedProx policy",
     )
     parser.add_argument(
         "--fixed",
@@ -70,6 +80,30 @@ def main():
         help="Run only the fixed-epoch FedProx baseline",
     )
     parser.add_argument(
+        "--alpha",
+        type=float,
+        default=ALPHA,
+        help="Network penalty weight in utility function",
+    )
+    parser.add_argument(
+        "--beta",
+        type=float,
+        default=BETA,
+        help="Compute interference penalty weight in utility function",
+    )
+    parser.add_argument(
+        "--gamma",
+        type=float,
+        default=GAMMA,
+        help="Model drift penalty weight in utility function",
+    )
+    parser.add_argument(
+        "--delta",
+        type=float,
+        default=DELTA,
+        help="Information gain reward weight in utility function",
+    )
+    parser.add_argument(
         "--job-id",
         "--job_id",
         dest="job_id",
@@ -86,6 +120,14 @@ def main():
         parser.error("--fedprox-epochs must be positive")
     if args.fedprox_mu < 0:
         parser.error("--fedprox-mu must be non-negative")
+    if args.alpha < 0:
+        parser.error("--alpha must be non-negative")
+    if args.beta < 0:
+        parser.error("--beta must be non-negative")
+    if args.gamma < 0:
+        parser.error("--gamma must be non-negative")
+    if args.delta < 0:
+        parser.error("--delta must be non-negative")
 
     print("Starting network dataset setup and simulation...")
     clone_and_run_dataset()
@@ -93,6 +135,8 @@ def main():
 
     if args.dynamic_only:
         experiments = ["dynamic"]
+    elif args.dynamic_fedprox:
+        experiments = ["dynamic_fedprox"]
     elif args.fedprox_only:
         experiments = [f"fedprox_{args.fedprox_epochs}"]
     elif args.fixed is not None:
@@ -113,8 +157,11 @@ def main():
     run_simulation(
         dataframe,
         NUM_VEHICLES,
-        NUM_SAMPLES,
         num_rounds=args.rounds,
+        alpha=args.alpha,
+        beta=args.beta,
+        gamma=args.gamma,
+        delta=args.delta,
         experiments=experiments,
         gpus_per_client=args.gpus_per_client,
         dataset_name=args.dataset,

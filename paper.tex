@@ -38,7 +38,7 @@ However, executing FL in vehicular networks introduces operational constraints t
     \item \textbf{Mixed-Criticality Hardware Contention:} SDVs rely on consolidated, virtualized hardware architectures where FL workloads must share CPU and accelerator capacity with safety-critical Electronic Control Unit (ECU) services (e.g., ADAS perception, object tracking, and trajectory planning). In-vehicle FL is strictly a secondary background process that must yield execution slack whenever safety-critical processes demand compute. Enforcing static training schedules without inspecting processor occupancy risks severe compute starvation and deadline misses for higher-priority tasks.
 \end{enumerate}
 
-Existing vehicular FL scheduling solutions generally focus on link-level optimization, rate adaptation, or joint transmit-power allocation while treating onboard compute as either fixed or dedicated. Moreover, under severe network degradation, existing frameworks either drop updates blindly or continue uncoordinated local computation that exacerbates drift.
+Existing vehicular FL scheduling solutions generally focus on link-level optimization, rate adaptation, or joint transmit-power allocation while treating onboard compute as either fixed or dedicated. A crucial limitation is the absence of \emph{learning-aware} decision making: current frameworks determine upload frequency and client selection based on channel conditions and computational budgets, but never evaluate whether the local training they schedule produces meaningful model improvements. Under non-IID vehicular data, a client may reach diminishing returns after two local epochs, yet a fixed-epoch policy forces it to continue---wasting compute, increasing parameter drift, and degrading convergence upon aggregation. A second gap concerns mixed-criticality hardware contention: existing formulations model onboard compute as unlimited or statically partitioned, ignoring the time-varying nature of safety workload demand. When an ADAS perception pipeline experiences a transient spike, a scheduler that continues training can induce deadline violations in safety-critical tasks.
 
 To bridge this gap, we propose an online runtime policy engine that coordinates compute allocation, local training depth, and upload decisions via a unified utility maximization objective:
 \begin{equation*}
@@ -90,7 +90,7 @@ Zhang et al.~\cite{ref_zhang_automotive} & Embedded GPU hardware evaluation & Sl
 \end{table*}
 
 \subsection{Summary and Positioning}
-As summarized in Table~\ref{tab:related_work}, existing approaches primarily optimize radio resource blocks or static computation partitions. In contrast, modern SDVs operate in mixed-criticality environments where FL shares compute capacity with high-priority safety tasks. Our work introduces a dynamic compute occupancy metric ($U_i^{\text{crit}}(t)$) and implements an online heuristic that co-optimizes training depth and communication timing based on real-time vehicle resource constraints.
+As summarized in Table~\ref{tab:related_work}, existing approaches primarily optimize radio resource blocks or static computation partitions. Critically, no prior work jointly evaluates: (i)~\emph{whether} an additional local epoch will produce measurable learning gain, and (ii)~\emph{whether} the vehicle's CPU can afford that epoch without starving co-located safety workloads. Modern SDVs operate in mixed-criticality environments where FL shares compute capacity with high-priority safety tasks. Our work bridges both gaps by introducing a dynamic compute occupancy metric ($U_i^{\text{crit}}(t)$), a bounded exponential gain predictor, and an online heuristic that co-optimizes training depth and communication timing based on real-time vehicle resource constraints and empirical learning dynamics.
 
 \section{System Model and Problem Formulation}
 We consider a vehicular federated learning network with $N$ client vehicles, indexed by $\mathcal{V} = \{1, 2, \dots, N\}$, communicating with an edge or roadside server over discrete decision rounds $t \in \{0, 1, \dots, T-1\}$.
@@ -146,13 +146,18 @@ At local epoch $e \in \{1, \dots, \rho_i\}$, the client evaluates the marginal u
 \end{equation}
 where $\widehat{G}_i(e+1)$ is the expected loss reduction predicted via curve fitting, and $\delta, \beta, \gamma$ are positive weighting coefficients.
 
+The marginal utility $\Delta U_i(e{+}1)$ serves as a per-epoch decision criterion that enables fine-grained adaptive training depth. Rather than committing to a predetermined number of local epochs, each vehicle evaluates whether the expected improvement in validation loss outweighs the resource costs. This prevents two failure modes inherent in fixed-epoch FL: (i)~\emph{under-training}, where clients with rich local datasets are artificially limited; and (ii)~\emph{over-training}, where clients with depleted or redundant data continue burning compute and accumulating destructive drift.
+
 \subsection{Global Fleet Optimization Objective}
 The global fleet objective over time horizon $T$ is formulated as an online utility maximization:
 \begin{equation}
 \max_{\{c_i(t), e_i(t), p_i(t)\}} \sum_{t=0}^{T-1} \left[ \delta \sum_{i \in \mathcal{V}} G_i(t) - \alpha C_{\text{net}}(t) - \beta C_{\text{comp}}(t) - \gamma C_{\text{drift}}(t) \right]
 \label{eq:global_opt}
 \end{equation}
-subject to:
+
+The positive term $\delta \sum_i G_i(t)$ rewards measurable empirical progress, while the penalty terms impose costs for bandwidth consumption, safety-critical compute contention, and parameter divergence. This structure ensures that the trivially cost-optimal solution of not training is penalized by forfeiting learning rewards, while the trivially gain-optimal solution of unrestricted training is penalized by resource costs. The policy engine therefore seeks the productive equilibrium between learning progress and operational sustainability.
+
+\noindent subject to:
 \begin{align}
 & c_i(t) \le 1 - U_i^{\text{crit}}(t), \quad \forall i, t \label{eq:slack_constraint} \\
 & e_i(t) \le \rho_i c_i(t), \quad \forall i, t \label{eq:epochs_constraint} \\
