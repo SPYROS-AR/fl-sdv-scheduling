@@ -106,15 +106,16 @@ python src/visualization.py --job-id a01
 
 To dispatch full 250-round baseline evaluations across Dirichlet partitions ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$):
 
+Each experiment runs as an **independent array task with its own dedicated GPU and 5-hour time allocation**:
+
 ```bash
-# Submit baseline suite for alpha = 0.1 (Dynamic, Fixed 1, Fixed 5, Fixed 10, FedProx 5)
-sbatch scripts/submit_final.sh 0.1
+# Submit the entire benchmark suite (all 3 alphas x 6 experiments = 18 parallel jobs):
+sbatch scripts/submit_final.sh
 
-# Submit baseline suite for alpha = 0.3
-sbatch scripts/submit_final.sh 0.3
-
-# Submit baseline suite for alpha = 0.5
-sbatch scripts/submit_final.sh 0.5
+# Or submit specific alpha subsets:
+sbatch --array=0-5 scripts/submit_final.sh    # alpha = 0.1
+sbatch --array=6-11 scripts/submit_final.sh   # alpha = 0.3
+sbatch --array=12-17 scripts/submit_final.sh  # alpha = 0.5
 ```
 
 Outputs are logged as `metrics_<experiment>_<job-id>.csv` and can be visualized via `python src/visualization.py --job-id a01`.
