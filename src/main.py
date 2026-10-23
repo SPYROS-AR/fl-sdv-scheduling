@@ -1,5 +1,7 @@
 import argparse
+import os
 
+import pandas as pd
 import torch
 
 from constants import (
@@ -130,8 +132,13 @@ def main():
         parser.error("--delta must be non-negative")
 
     print("Starting network dataset setup and simulation...")
-    clone_and_run_dataset()
-    dataframe = load_and_clean_dataset(filepath="dataset/data/network_dataset.csv")
+    cleaned_path = "dataset/data/cleaned_network_dataset.csv"
+    if os.path.isfile(cleaned_path):
+        print(f"Using pre-processed network dataset: {cleaned_path}")
+        dataframe = pd.read_csv(cleaned_path)
+    else:
+        clone_and_run_dataset()
+        dataframe = load_and_clean_dataset(filepath="dataset/data/network_dataset.csv")
 
     if args.dynamic_only:
         experiments = ["dynamic"]

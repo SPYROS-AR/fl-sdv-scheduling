@@ -29,16 +29,25 @@ class EnvironmentBuilder:
 
     @classmethod
     def setup_external_repo(cls):
+        dataset_path = os.path.join(cls.TARGET_FOLDER, "data", "network_dataset.csv")
+        if os.path.isfile(dataset_path):
+            print(f"Using existing network dataset: {dataset_path}")
+            return
+
+        if os.path.exists(cls.TARGET_FOLDER) and not os.path.isdir(
+            os.path.join(cls.TARGET_FOLDER, ".git")
+        ):
+            import shutil
+
+            print(
+                f"Directory '{cls.TARGET_FOLDER}' exists but lacks git repository data. Re-initializing..."
+            )
+            shutil.rmtree(cls.TARGET_FOLDER)
+
         if not os.path.exists(cls.TARGET_FOLDER):
             print(f"Cloning repository from {cls.REPO_URL}...")
             cls._run_command(["git", "clone", cls.REPO_URL, cls.TARGET_FOLDER])
 
-        # The network dataset generator only needs the core project dependencies
-        # (NumPy, pandas, and PyTorch). Installing the external repository's full
-        # requirements also installs optional YOLO/OpenCV tooling, which this FL
-        # experiment does not use and which can fail on some Python versions.
-        # Install this project's root requirements.txt once in the active venv.
-        dataset_path = os.path.join(cls.TARGET_FOLDER, "data", "network_dataset.csv")
         if os.path.isfile(dataset_path):
             print(f"Using existing network dataset: {dataset_path}")
             return

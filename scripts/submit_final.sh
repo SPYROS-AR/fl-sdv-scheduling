@@ -9,6 +9,8 @@
 #SBATCH --error=logs/final_%A_%a.err
 #SBATCH --array=0-17
 
+set -e
+
 mkdir -p logs
 
 # Environment setup
@@ -16,6 +18,12 @@ if [ -f ".venv/bin/activate" ]; then
   source .venv/bin/activate
 elif [ -f "$HOME/miniconda3/bin/activate" ]; then
   source "$HOME/miniconda3/bin/activate" fl_env
+fi
+
+# Ensure preprocessed network trace dataset is available
+if [ ! -f "dataset/data/cleaned_network_dataset.csv" ]; then
+  echo "Dataset not preprocessed yet. Initializing dataset..."
+  python src/setup_data.py
 fi
 
 export HF_HUB_OFFLINE=1
