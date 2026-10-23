@@ -56,6 +56,12 @@ META_CONFIG = {
     },
 }
 
+ALPHA_METADATA = {
+    "a01": {"title": r"$\alpha_{\mathrm{Dir}} = 0.1$ (Extreme Non-IID)", "label": r"$\alpha = 0.1$"},
+    "a03": {"title": r"$\alpha_{\mathrm{Dir}} = 0.3$ (Moderate Non-IID)", "label": r"$\alpha = 0.3$"},
+    "a05": {"title": r"$\alpha_{\mathrm{Dir}} = 0.5$ (Mild Non-IID)", "label": r"$\alpha = 0.5$"},
+}
+
 
 def setup_plot_style():
     """Apply common publication-oriented Matplotlib defaults."""
@@ -74,16 +80,25 @@ def setup_plot_style():
     )
 
 
-def _style_for(exp_name: str):
+def _style_for(exp_name: str) -> dict:
     if exp_name in META_CONFIG:
-        return META_CONFIG[exp_name]
-    # Supports a non-default CLI value such as fedprox_3 or fedprox_10.
+        return dict(META_CONFIG[exp_name])
     if exp_name.startswith("fedprox_"):
+        parts = exp_name.split("_")
+        epochs = parts[1] if len(parts) > 1 else "?"
         return {
-            "label": f"Fixed FedProx: {exp_name.split('_', 1)[1]} Epochs",
+            "label": f"Fixed FedProx: {epochs} Epochs",
             "color": "#6A4C93",
             "linestyle": "-.",
             "linewidth": 2.0,
+        }
+    if exp_name.startswith("fixed_"):
+        parts = exp_name.split("_")
+        epochs = parts[1] if len(parts) > 1 else "?"
+        return {
+            "label": f"Fixed FedAvg: {epochs} Epochs",
+            "linestyle": "--",
+            "linewidth": 1.5,
         }
     return {
         "label": exp_name.replace("_", " ").title(),
@@ -92,22 +107,80 @@ def _style_for(exp_name: str):
     }
 
 
+def repair_dataframe_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Synthesize legacy columns if missing so older experiment runs can be visualized."""
+    df = df.copy()
+
+    # Cumulative compute interference
+    if "total_c_comp" not in df.columns and "c_comp" in df.columns:
+        df["total_c_comp"] = pd.to_numeric(df["c_comp"], errors="coerce").fillna(0.0).cumsum()
+
+    # Parameter drift mean
+    if "mean_model_drift" not in df.columns and "c_drift" in df.columns:
+        syncs = pd.to_numeric(df.get("syncs", 1), errors="coerce").fillna(1).replace(0, 1)
+        df["mean_model_drift"] = pd.to_numeric(df["c_drift"], errors="coerce") / syncs
+
+    # Cumulative network transmitted payload in MB
+    if "total_transmitted_mb" not in df.columns:
+        if "transmitted_mb" in df.columns:
+            df["total_transmitted_mb"] = (
+                pd.to_numeric(df["transmitted_mb"], errors="coerce").fillna(0.0).cumsum()
+            )
+        elif "syncs" in df.columns and "round" in df.columns:
+            # ResNet-9 FP32 footprint is ~9.31 MB per transfer
+            round_mb = (10 * 9.31) + (
+                pd.to_numeric(df["syncs"], errors="coerce").fillna(0.0) * 9.31
+            )
+            df["total_transmitted_mb"] = round_mb.cumsum()
+
+    return df
+
+
+def discover_job_ids(search_dirs: list[Path]) -> list[str]:
+    """Find all distinct job_id suffixes from metrics_*_<job_id>.csv files."""
+    job_ids = set()
+    known_prefixes = {
+        "dynamic",
+        "fixed_1",
+        "fixed_3",
+        "fixed_5",
+        "fixed_10",
+        "fixed_20",
+        "dynamic_fedprox",
+        "fedprox_1",
+        "fedprox_3",
+        "fedprox_5",
+        "fedprox_10",
+        "fedprox_20",
+    }
+    for directory in search_dirs:
+        if not directory.exists():
+            continue
+        for path in directory.glob("metrics_*.csv"):
+            stem = path.stem[len("metrics_") :]
+            parts = stem.split("_")
+            for sep_idx in range(1, len(parts)):
+                prefix = "_".join(parts[:sep_idx])
+                suffix = "_".join(parts[sep_idx:])
+                if prefix in known_prefixes:
+                    job_ids.add(suffix)
+                    break
+
+    order = {"a01": 1, "a03": 2, "a05": 3}
+    return sorted(job_ids, key=lambda x: (order.get(x, 99), x))
+
+
 def load_metrics_data(job_id: str = "") -> dict[str, pd.DataFrame]:
-    """Load metrics from the current directory, falling back to final_metrics/."""
+    """Load metrics matching a specific job_id, falling back across directories."""
     loaded_data = {}
     search_dirs = [Path("."), Path("final_metrics")]
+    pattern = f"metrics_*_{job_id}.csv" if job_id else "metrics_*.csv"
     found_paths = {}
-
-    if job_id:
-        pattern = f"metrics_*_{job_id}.csv"
-    else:
-        pattern = "metrics_*.csv"
 
     for directory in search_dirs:
         if not directory.exists():
             continue
         for path in directory.glob(pattern):
-            # Avoid loading the same experiment twice when both locations contain it.
             if path.name in found_paths:
                 continue
             stem = path.stem
@@ -117,27 +190,15 @@ def load_metrics_data(job_id: str = "") -> dict[str, pd.DataFrame]:
                     continue
                 exp_name = exp_name[: -(len(job_id) + 1)]
             else:
-                # Ignore job-specific files when no job ID was requested.
-                known = {
-                    "dynamic",
-                    "fixed_1",
-                    "fixed_3",
-                    "fixed_5",
-                    "fixed_10",
-                    "fixed_20",
-                    "dynamic_fedprox",
-                }
-                is_fedprox = (
-                    exp_name.startswith("fedprox_")
-                    and exp_name.split("_")[-1].isdigit()
-                )
-                if exp_name not in known and not is_fedprox:
+                # If no job_id specified, ignore suffixed files here (they are handled by discovery)
+                if any(exp_name.endswith(f"_{jid}") for jid in ["a01", "a03", "a05"]):
                     continue
             found_paths[path.name] = (exp_name, path)
 
     for exp_name, path in found_paths.values():
         try:
-            loaded_data[exp_name] = pd.read_csv(path)
+            df = pd.read_csv(path)
+            loaded_data[exp_name] = repair_dataframe_columns(df)
             print(f"Loaded: {path}")
         except (OSError, pd.errors.ParserError) as exc:
             print(f"Warning: could not read {path}: {exc}")
@@ -183,7 +244,7 @@ def plot_required_metrics(
             "filename": "fig4_model_drift.pdf",
             "title": "Mean Local-to-Global Model Drift",
             "xlabel": "Communication Round",
-            "ylabel": "Mean Parameter Divergence (sum of layer L2 norms)",
+            "ylabel": "Mean Parameter Divergence (L2 distance)",
             "percent": False,
         },
     ]
@@ -194,13 +255,12 @@ def plot_required_metrics(
         for exp_name, frame in data.items():
             y_col = spec["y"]
             if y_col == "global_accuracy" and "centralized_accuracy" in frame.columns:
-                # Prefer centralized test accuracy if populated
                 if pd.to_numeric(frame["centralized_accuracy"], errors="coerce").notna().any():
                     y_col = "centralized_accuracy"
 
             if spec["x"] not in frame.columns or y_col not in frame.columns:
                 print(
-                    f"Skipping {exp_name} for {spec['filename']}: required columns missing"
+                    f"Skipping {exp_name} for {spec['filename']}: required column '{y_col}' or '{spec['x']}' missing"
                 )
                 continue
             series = frame[[spec["x"], y_col]].copy()
@@ -222,7 +282,8 @@ def plot_required_metrics(
             )
             plotted += 1
 
-        ax.set_title(spec["title"])
+        title_suffix = f" ({ALPHA_METADATA[job_id]['title']})" if job_id in ALPHA_METADATA else (f" ({job_id})" if job_id else "")
+        ax.set_title(f"{spec['title']}{title_suffix}")
         ax.set_xlabel(spec["xlabel"])
         ax.set_ylabel(spec["ylabel"])
         ax.grid(True, linestyle="--", alpha=0.5)
@@ -232,12 +293,13 @@ def plot_required_metrics(
             ax.text(
                 0.5,
                 0.5,
-                "No compatible metrics found. Run the updated experiments first.",
+                "No compatible metrics found for this plot.",
                 transform=ax.transAxes,
                 ha="center",
                 va="center",
             )
         fig.tight_layout()
+
         base_name = spec["filename"]
         if job_id:
             p = Path(base_name)
@@ -245,22 +307,175 @@ def plot_required_metrics(
             fig.savefig(suffixed_dest, dpi=300, bbox_inches="tight")
             print(f"Saved: {suffixed_dest}")
 
-        main_dest = output_dir / base_name
-        fig.savefig(main_dest, dpi=300, bbox_inches="tight")
+        # If job_id is a01 or empty, also update the main baseline plot
+        if not job_id or job_id == "a01":
+            main_dest = output_dir / base_name
+            fig.savefig(main_dest, dpi=300, bbox_inches="tight")
+            print(f"Saved: {main_dest}")
+
         plt.close(fig)
-        print(f"Saved: {main_dest}")
+
+
+def plot_multi_panel_dirichlet(
+    all_jobs_data: dict[str, dict[str, pd.DataFrame]], output_dir: Path
+):
+    """Generate 1x3 side-by-side subplot figures across Dirichlet alphas (0.1, 0.3, 0.5)."""
+    target_alphas = [jid for jid in ["a01", "a03", "a05"] if jid in all_jobs_data]
+    if len(target_alphas) < 2:
+        return
+
+    n_cols = len(target_alphas)
+
+    # 1. Multi-panel: Accuracy vs Cumulative Transmitted Payload
+    fig, axes = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
+    if n_cols == 1:
+        axes = [axes]
+
+    legend_handles = {}
+    for idx, jid in enumerate(target_alphas):
+        ax = axes[idx]
+        data = all_jobs_data[jid]
+        for exp_name, frame in data.items():
+            y_col = "centralized_accuracy" if "centralized_accuracy" in frame.columns and frame["centralized_accuracy"].dropna().shape[0] > 0 else "global_accuracy"
+            x_col = "total_transmitted_mb"
+            if x_col not in frame.columns or y_col not in frame.columns:
+                continue
+            series = frame[[x_col, y_col]].copy()
+            series[x_col] = pd.to_numeric(series[x_col], errors="coerce")
+            series[y_col] = pd.to_numeric(series[y_col], errors="coerce")
+            series = series.dropna().sort_values(x_col)
+            if series.empty:
+                continue
+
+            style = _style_for(exp_name)
+            line, = ax.plot(
+                series[x_col],
+                series[y_col] * 100.0,
+                label=style["label"],
+                **{k: v for k, v in style.items() if k != "label"},
+            )
+            if style["label"] not in legend_handles:
+                legend_handles[style["label"]] = line
+
+        title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
+        ax.set_title(title, fontsize=12, fontweight="bold")
+        ax.set_xlabel("Cumulative Payload (MB)", fontsize=11)
+        if idx == 0:
+            ax.set_ylabel("Global Test Accuracy (%)", fontsize=11)
+        ax.grid(True, linestyle="--", alpha=0.5)
+
+    if legend_handles:
+        fig.legend(
+            legend_handles.values(),
+            legend_handles.keys(),
+            loc="upper center",
+            bbox_to_anchor=(0.5, 1.06),
+            ncol=min(len(legend_handles), 4),
+            fontsize=10,
+        )
+
+    fig.tight_layout()
+    comparison_pdf = output_dir / "fig1_dirichlet_comparison.pdf"
+    fig.savefig(comparison_pdf, dpi=300, bbox_inches="tight")
+    print(f"Saved multi-panel comparison: {comparison_pdf}")
+    plt.close(fig)
+
+    # 2. Multi-panel: Model Drift vs Round
+    fig2, axes2 = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
+    if n_cols == 1:
+        axes2 = [axes2]
+
+    legend_handles2 = {}
+    for idx, jid in enumerate(target_alphas):
+        ax = axes2[idx]
+        data = all_jobs_data[jid]
+        for exp_name, frame in data.items():
+            y_col = "mean_model_drift"
+            x_col = "round"
+            if x_col not in frame.columns or y_col not in frame.columns:
+                continue
+            series = frame[[x_col, y_col]].copy()
+            series[x_col] = pd.to_numeric(series[x_col], errors="coerce")
+            series[y_col] = pd.to_numeric(series[y_col], errors="coerce")
+            series = series.dropna().sort_values(x_col)
+            if series.empty:
+                continue
+
+            style = _style_for(exp_name)
+            line, = ax.plot(
+                series[x_col],
+                series[y_col],
+                label=style["label"],
+                **{k: v for k, v in style.items() if k != "label"},
+            )
+            if style["label"] not in legend_handles2:
+                legend_handles2[style["label"]] = line
+
+        title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
+        ax.set_title(title, fontsize=12, fontweight="bold")
+        ax.set_xlabel("Communication Round", fontsize=11)
+        if idx == 0:
+            ax.set_ylabel("Mean Parameter Drift (L2 distance)", fontsize=11)
+        ax.grid(True, linestyle="--", alpha=0.5)
+
+    if legend_handles2:
+        fig2.legend(
+            legend_handles2.values(),
+            legend_handles2.keys(),
+            loc="upper center",
+            bbox_to_anchor=(0.5, 1.06),
+            ncol=min(len(legend_handles2), 4),
+            fontsize=10,
+        )
+
+    fig2.tight_layout()
+    drift_comparison_pdf = output_dir / "fig4_dirichlet_drift_comparison.pdf"
+    fig2.savefig(drift_comparison_pdf, dpi=300, bbox_inches="tight")
+    print(f"Saved multi-panel drift comparison: {drift_comparison_pdf}")
+    plt.close(fig2)
 
 
 def main(job_id: str = ""):
     setup_plot_style()
     output_dir = Path("plots")
     output_dir.mkdir(exist_ok=True)
-    loaded_data = load_metrics_data(job_id)
-    if not loaded_data:
-        print("No metrics files found. Run the simulation before plotting.")
-        return
-    plot_required_metrics(loaded_data, output_dir, job_id=job_id)
-    print(f"Four evaluation figures saved in {output_dir.resolve()}")
+    search_dirs = [Path("."), Path("final_metrics")]
+
+    if job_id:
+        # User explicitly requested a single specific job_id (e.g. --job-id a01)
+        data = load_metrics_data(job_id)
+        if not data:
+            print(f"No metrics files found matching job-id '{job_id}'.")
+            return
+        plot_required_metrics(data, output_dir, job_id=job_id)
+    else:
+        # Auto-discovery mode: scan for all alpha jobs (a01, a03, a05, etc.)
+        discovered_job_ids = discover_job_ids(search_dirs)
+        all_jobs_data = {}
+
+        if discovered_job_ids:
+            print(f"Discovered job groups: {discovered_job_ids}")
+            for jid in discovered_job_ids:
+                print(f"\n--- Processing Job ID: {jid} ---")
+                job_data = load_metrics_data(jid)
+                if job_data:
+                    all_jobs_data[jid] = job_data
+                    plot_required_metrics(job_data, output_dir, job_id=jid)
+
+            # Generate multi-panel cross-alpha comparison figures if multiple alphas are present
+            if len(all_jobs_data) >= 2:
+                print("\n--- Generating Multi-Panel Dirichlet Alpha Comparison Figures ---")
+                plot_multi_panel_dirichlet(all_jobs_data, output_dir)
+        else:
+            # Fallback to unsuffixed legacy metrics
+            print("No suffixed metrics found. Loading default unsuffixed metrics...")
+            data = load_metrics_data()
+            if not data:
+                print("No metrics files found. Run the simulation before plotting.")
+                return
+            plot_required_metrics(data, output_dir)
+
+    print(f"\nEvaluation figures saved in {output_dir.resolve()}")
 
 
 if __name__ == "__main__":
@@ -271,6 +486,6 @@ if __name__ == "__main__":
         dest="job_id",
         type=str,
         default="",
-        help="Optional run identifier used in metrics filenames",
+        help="Optional run identifier (e.g. 'a01', 'a03', 'a05'). Omit to auto-discover all runs.",
     )
     main(job_id=parser.parse_args().job_id)
