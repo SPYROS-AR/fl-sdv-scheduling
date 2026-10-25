@@ -159,7 +159,7 @@ def discover_job_ids(search_dirs: list[Path]) -> list[str]:
         for path in directory.glob("metrics_*.csv"):
             stem = path.stem[len("metrics_") :]
             parts = stem.split("_")
-            for sep_idx in range(1, len(parts)):
+            for sep_idx in range(len(parts) - 1, 0, -1):
                 prefix = "_".join(parts[:sep_idx])
                 suffix = "_".join(parts[sep_idx:])
                 if prefix in known_prefixes:

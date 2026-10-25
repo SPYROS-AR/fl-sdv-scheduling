@@ -26,8 +26,8 @@ if [ ! -f "dataset/data/cleaned_network_dataset.csv" ]; then
   python src/setup_data.py
 fi
 
-export HF_HUB_OFFLINE=1
-export TRANSFORMERS_OFFLINE=1
+# export HF_HUB_OFFLINE=1
+# export TRANSFORMERS_OFFLINE=1
 
 # 3 Dirichlet non-IID distributions: 0.1 (extreme), 0.3 (moderate), 0.5 (mild)
 ALPHAS=(0.1 0.3 0.5)
