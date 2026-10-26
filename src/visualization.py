@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 
@@ -316,6 +317,77 @@ def plot_required_metrics(
         plt.close(fig)
 
 
+def plot_client_state_distribution(
+    data: dict[str, pd.DataFrame], output_dir: Path, job_id: str = ""
+):
+    """Generate a stacked bar chart of client operational states across the simulation."""
+    order = [
+        "fixed_1",
+        "fixed_3",
+        "fixed_5",
+        "fixed_10",
+        "fixed_20",
+        "fedprox_1",
+        "fedprox_3",
+        "fedprox_5",
+        "fedprox_10",
+        "dynamic",
+        "dynamic_fedprox",
+    ]
+    present_exps = [e for e in order if e in data]
+    present_exps += [e for e in data.keys() if e not in present_exps]
+
+    if not present_exps:
+        return
+
+    labels = []
+    syncs, continues, waits, dropped = [], [], [], []
+
+    for exp in present_exps:
+        df = data[exp]
+        labels.append(_style_for(exp)["label"])
+        syncs.append(int(pd.to_numeric(df.get("syncs", 0), errors="coerce").fillna(0).sum()))
+        continues.append(int(pd.to_numeric(df.get("continues", 0), errors="coerce").fillna(0).sum()))
+        waits.append(int(pd.to_numeric(df.get("waits", 0), errors="coerce").fillna(0).sum()))
+        dropped.append(int(pd.to_numeric(df.get("dropped", 0), errors="coerce").fillna(0).sum()))
+
+    x = np.arange(len(labels))
+    width = 0.55
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    syncs_arr = np.array(syncs)
+    continues_arr = np.array(continues)
+    waits_arr = np.array(waits)
+    dropped_arr = np.array(dropped)
+
+    ax.bar(x, syncs_arr, width, label="SYNC (Upload)", color="#2A9D8F")
+    ax.bar(x, continues_arr, width, bottom=syncs_arr, label="CONTINUE (Local Training)", color="#E9C46A")
+    ax.bar(x, waits_arr, width, bottom=syncs_arr + continues_arr, label="WAIT (Idle / Yield Slack)", color="#F4A261")
+    ax.bar(x, dropped_arr, width, bottom=syncs_arr + continues_arr + waits_arr, label="DROPPED (Buffer Limit)", color="#E63946")
+
+    title_suffix = f" ({ALPHA_METADATA[job_id]['title']})" if job_id in ALPHA_METADATA else (f" ({job_id})" if job_id else "")
+    ax.set_title(f"Distribution of Client Operational States{title_suffix}", fontsize=12, fontweight="bold")
+    ax.set_ylabel("Total Client Occurrences")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=9)
+    ax.legend(title="Operational State", loc="upper right", framealpha=0.9)
+    ax.grid(True, linestyle="--", alpha=0.5, axis="y")
+    fig.tight_layout()
+
+    filename = "fig5_client_state_distribution.pdf"
+    if job_id:
+        suffixed_dest = output_dir / f"fig5_client_state_distribution_{job_id}.pdf"
+        fig.savefig(suffixed_dest, dpi=300, bbox_inches="tight")
+        print(f"Saved: {suffixed_dest}")
+
+    if not job_id or job_id == "a01":
+        main_dest = output_dir / filename
+        fig.savefig(main_dest, dpi=300, bbox_inches="tight")
+        print(f"Saved: {main_dest}")
+
+    plt.close(fig)
+
+
 def plot_multi_panel_dirichlet(
     all_jobs_data: dict[str, dict[str, pd.DataFrame]], output_dir: Path
 ):
@@ -434,6 +506,74 @@ def plot_multi_panel_dirichlet(
     print(f"Saved multi-panel drift comparison: {drift_comparison_pdf}")
     plt.close(fig2)
 
+    # 3. Multi-panel: Client Operational State Distribution (Stacked Bars)
+    fig3, axes3 = plt.subplots(1, n_cols, figsize=(6.0 * n_cols, 4.8), sharey=True)
+    if n_cols == 1:
+        axes3 = [axes3]
+
+    order = [
+        "fixed_1",
+        "fixed_3",
+        "fixed_5",
+        "fixed_10",
+        "fixed_20",
+        "fedprox_1",
+        "fedprox_3",
+        "fedprox_5",
+        "fedprox_10",
+        "dynamic",
+        "dynamic_fedprox",
+    ]
+
+    p_handles = []
+    for idx, jid in enumerate(target_alphas):
+        ax = axes3[idx]
+        data = all_jobs_data[jid]
+        present_exps = [e for e in order if e in data]
+        present_exps += [e for e in data.keys() if e not in present_exps]
+
+        labels = [_style_for(e)["label"] for e in present_exps]
+        syncs = [int(pd.to_numeric(data[e].get("syncs", 0), errors="coerce").fillna(0).sum()) for e in present_exps]
+        continues = [int(pd.to_numeric(data[e].get("continues", 0), errors="coerce").fillna(0).sum()) for e in present_exps]
+        waits = [int(pd.to_numeric(data[e].get("waits", 0), errors="coerce").fillna(0).sum()) for e in present_exps]
+        dropped = [int(pd.to_numeric(data[e].get("dropped", 0), errors="coerce").fillna(0).sum()) for e in present_exps]
+
+        x = np.arange(len(labels))
+        width = 0.55
+        syncs_arr = np.array(syncs)
+        continues_arr = np.array(continues)
+        waits_arr = np.array(waits)
+        dropped_arr = np.array(dropped)
+
+        p1 = ax.bar(x, syncs_arr, width, label="SYNC (Upload)", color="#2A9D8F")
+        p2 = ax.bar(x, continues_arr, width, bottom=syncs_arr, label="CONTINUE (Local Training)", color="#E9C46A")
+        p3 = ax.bar(x, waits_arr, width, bottom=syncs_arr + continues_arr, label="WAIT (Idle)", color="#F4A261")
+        p4 = ax.bar(x, dropped_arr, width, bottom=syncs_arr + continues_arr + waits_arr, label="DROPPED (Buffer Limit)", color="#E63946")
+        if not p_handles:
+            p_handles = [p1, p2, p3, p4]
+
+        title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
+        ax.set_title(title, fontsize=12, fontweight="bold")
+        if idx == 0:
+            ax.set_ylabel("Total Client Occurrences", fontsize=11)
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=35, ha="right", fontsize=8.5)
+        ax.grid(True, linestyle="--", alpha=0.5, axis="y")
+
+    fig3.legend(
+        p_handles,
+        ["SYNC (Upload)", "CONTINUE (Train Locally)", "WAIT (Idle / Yield Slack)", "DROPPED (Network Limit)"],
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.06),
+        ncol=4,
+        fontsize=10,
+    )
+    fig3.tight_layout()
+    states_comparison_pdf = output_dir / "fig5_client_state_distribution_comparison.pdf"
+    fig3.savefig(states_comparison_pdf, dpi=300, bbox_inches="tight")
+    print(f"Saved multi-panel state distribution: {states_comparison_pdf}")
+    plt.close(fig3)
+
 
 def main(job_id: str = ""):
     setup_plot_style()
@@ -448,6 +588,7 @@ def main(job_id: str = ""):
             print(f"No metrics files found matching job-id '{job_id}'.")
             return
         plot_required_metrics(data, output_dir, job_id=job_id)
+        plot_client_state_distribution(data, output_dir, job_id=job_id)
     else:
         # Auto-discovery mode: scan for all alpha jobs (a01, a03, a05, etc.)
         discovered_job_ids = discover_job_ids(search_dirs)
@@ -461,6 +602,7 @@ def main(job_id: str = ""):
                 if job_data:
                     all_jobs_data[jid] = job_data
                     plot_required_metrics(job_data, output_dir, job_id=jid)
+                    plot_client_state_distribution(job_data, output_dir, job_id=jid)
 
             # Generate multi-panel cross-alpha comparison figures if multiple alphas are present
             if len(all_jobs_data) >= 2:
@@ -474,6 +616,7 @@ def main(job_id: str = ""):
                 print("No metrics files found. Run the simulation before plotting.")
                 return
             plot_required_metrics(data, output_dir)
+            plot_client_state_distribution(data, output_dir)
 
     print(f"\nEvaluation figures saved in {output_dir.resolve()}")
 

@@ -266,12 +266,12 @@ Fixed FedProx ($E = 5, \mu = 0.01$) & \textbf{74.48} & 76.35 & 77.98 & 46,544.4 
 \end{tabular}
 \end{table*}
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=0.92\linewidth]{plots/fig1_accuracy_vs_transmitted_data.pdf}
-\caption{Global validation accuracy (\%) plotted against cumulative transmitted model payload (MB) under non-IID partitioning ($\alpha_{\text{Dir}} = 0.1$).}
+\includegraphics[width=0.98\linewidth]{plots/fig1_dirichlet_comparison.pdf}
+\caption{Global centralized test accuracy (\%) plotted against cumulative transmitted model payload (MB) across non-IID Dirichlet partitioning regimes ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$).}
 \label{fig:accuracy_vs_mb}
-\end{figure}
+\end{figure*}
 
 \begin{figure}[t]
 \centering
@@ -281,7 +281,7 @@ Fixed FedProx ($E = 5, \mu = 0.01$) & \textbf{74.48} & 76.35 & 77.98 & 46,544.4 
 \end{figure}
 
 \subsection{Communication Efficiency vs. Global Accuracy}
-As presented in Table~\ref{tab:evaluation_results} and illustrated in Figure~\ref{fig:accuracy_vs_mb}, the proposed dynamic scheduling policy achieves rapid convergence while significantly curbing uplink network strain. Over 250 communication rounds, static baseline policies transmit a total of 46,544.4~MB (46.5~GB) and suffer 567 transmission drops due to uncoordinated uploads during low-throughput channel intervals. In contrast, the dynamic policy coordinates uploads via the \texttt{CONTINUE} and \texttt{WAIT} mechanisms, transmitting only 38,510.8~MB (a 17.3\% bandwidth reduction saving over 8.0~GB) while slashing upload drops by 83.2\% (from 567 down to 95).
+As presented in Table~\ref{tab:evaluation_results} and illustrated in Figure~\ref{fig:accuracy_vs_mb}, the proposed dynamic scheduling policy achieves rapid convergence while significantly curbing uplink network strain across all Dirichlet non-IID regimes ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$). Over 250 communication rounds, static baseline policies transmit a total of 46,544.4~MB (46.5~GB) and suffer 567 transmission drops due to uncoordinated uploads during low-throughput channel intervals. In contrast, the dynamic policy coordinates uploads via the \texttt{CONTINUE} and \texttt{WAIT} mechanisms, transmitting only 38,510.8~MB (a 17.3\% bandwidth reduction saving over 8.0~GB) while slashing upload drops by 83.2\% (from 567 down to 95).
 
 Under severe statistical heterogeneity ($\alpha_{\text{Dir}} = 0.1$), Dynamic FedAvg attains 72.88\% centralized test accuracy, outperforming Fixed FedAvg $E=10$ (71.28\%) by +1.60\% and Fixed $E=1$ (69.49\%) by +3.39\%. While Fixed FedAvg $E=10$ attempts to accelerate training by multiplying local epochs, client models diverge sharply under skewed data, degrading aggregated convergence. By contrast, the dynamic policy checks marginal learning utility $\Delta U_i(e+1)$ at each epoch, truncating training when empirical gains plateau.
 
@@ -294,17 +294,29 @@ Figure~\ref{fig:accuracy_vs_time} illustrates accuracy progression relative to e
 \label{fig:compute_interference}
 \end{figure}
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{plots/fig4_dirichlet_drift_comparison.pdf}
+\caption{Mean client parameter divergence ($D_i(t) = \|\mathbf{w}_i - \mathbf{w}_{\text{global}}\|_2$) across communication rounds for $\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$.}
+\label{fig:model_drift}
+\end{figure*}
+
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.92\linewidth]{plots/fig4_model_drift.pdf}
-\caption{Mean parameter divergence ($D_i(t) = \|\mathbf{w}_i - \mathbf{w}_{\text{global}}\|_2$) across communication rounds.}
-\label{fig:model_drift}
+\includegraphics[width=0.92\linewidth]{plots/fig5_client_state_distribution.pdf}
+\caption{Distribution of client operational states across the 250-round simulation ($\alpha_{\text{Dir}} = 0.1$). Static regimes blindly trigger 567 buffer dropouts under channel bottlenecks, whereas the dynamic engine redirects clients into autonomous local training (\texttt{CONTINUE}) and idle compute yielding (\texttt{WAIT}).}
+\label{fig:client_states}
 \end{figure}
 
 \subsection{Compute Contention and Model Drift Analysis}
 Figure~\ref{fig:compute_interference} compares cumulative compute contention ($\sum c_i(t) U_i^{\text{crit}}(t)$). Static high-epoch regimes ($E=10$) accumulate severe interference (772.6) because clients unconditionally execute training batches regardless of ADAS CPU occupancy. In contrast, our proposed policy proactively transitions clients into \texttt{WAIT} whenever compute slack is restricted or potential learning gain is minimal, bounding cumulative contention between 415.7 and 478.8 (a 38.0\% to 46.2\% reduction compared to $E=10$).
 
-Figure~\ref{fig:model_drift} illustrates client model drift measured via true vector Euclidean distance. High-epoch static regimes accumulate large cumulative divergence (4,218.4 for $E=10$ and 4,351.2 for $E=5$ under $\alpha=0.1$). When paired with proximal regularization (Dynamic FedProx), the dynamic framework curtails cumulative drift to 2,309.8 under $\alpha=0.1$ and 1,722.7 under $\alpha=0.5$---a 45.2\% drift reduction compared to Fixed $E=10$---while preserving the 17.3\% bandwidth savings and 83.2\% drop reduction.
+Figure~\ref{fig:model_drift} illustrates client model drift measured via true vector Euclidean distance across all three non-IID partitioning levels. High-epoch static regimes accumulate large cumulative divergence (4,218.4 for $E=10$ and 4,351.2 for $E=5$ under $\alpha=0.1$). When paired with proximal regularization (Dynamic FedProx), the dynamic framework curtails cumulative drift to 2,309.8 under $\alpha=0.1$ and 1,722.7 under $\alpha=0.5$---a 45.2\% drift reduction compared to Fixed $E=10$---while preserving the 17.3\% bandwidth savings and 83.2\% drop reduction.
+
+\subsection{Client Operational State Dynamics}
+Figure~\ref{fig:client_states} visualizes the aggregate distribution of client execution states across the 250-round simulation. Under static regimes ($E \in \{1, 5, 10\}$ and FedProx), clients operate in a binary mode: attempting to upload parameter updates whenever sampled, resulting in 1,933 upload attempts and 567 transmission drops due to cell capacity bottlenecks. 
+
+In contrast, the proposed dynamic engine actively leverages the three-state execution model. When link capacity is constrained but positive learning utility is predicted, vehicles transition into \texttt{CONTINUE} (861 occurrences under $\alpha=0.1$), continuing autonomous local optimization without clogging the cellular uplink. When compute slack is exhausted or learning utility diminishes below threshold $\tau_{\text{continue}}$, clients enter \texttt{WAIT}, yielding CPU slack to ADAS perception tasks. Consequently, upload drops are suppressed to only 95 (an 83.2\% reduction), transforming dropped transmissions into constructive local learning iterations.
 
 \section{Conclusion}
 This paper presented an online runtime policy engine for federated learning in Software-Defined Vehicles that addresses mixed-criticality compute contention and dynamic V2X bandwidth bottlenecks. By formalizing a three-state execution engine (\texttt{WAIT}, \texttt{CONTINUE}, \texttt{SYNC}) and predicting marginal validation gains via bounded exponential loss extrapolation, the proposed framework balances empirical learning progress against resource penalties. Experimental evaluations across non-IID Dirichlet distributions demonstrate that the dynamic engine achieves convergence on par with high-frequency synchronization baselines while reducing cumulative uplink bandwidth consumption by 17.3\%, slashing transmission drops by 83.2\%, and reducing safety-critical compute interference by up to 42.0\%. Future research will explore integration with vehicle trajectory prediction and 5G NR sidelink (V2V) cooperative parameter offloading.
