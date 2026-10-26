@@ -243,9 +243,16 @@ The evaluation benchmarks include:
 \begin{itemize}
     \item Static FedAvg baselines with fixed local epochs $E \in \{1, 5, 10\}$.
     \item Fixed FedProx ($E = 5, \mu = 0.01$) to assess proximal regularization against client drift.
-    \item The proposed Dynamic FL policy (FedAvg and Dynamic FedProx) operating with calibrated coefficients: $\alpha = 0.005$, $\beta = 1.0$, $\gamma = 0.006$, $\delta = 27.0$, $B_{\text{thresh}} = 20.0$~Mbps, and $G_{\text{thresh}} = 0.01$.
+    \item The proposed Dynamic FL policy (FedAvg and Dynamic FedProx) operating with calibrated coefficients: $\alpha = 0.005$, $\beta = 1.0$, $\gamma = 0.006$, $\delta = 27.0$, $B_{\text{thresh}} = 20.0$~Mbps, and $G_{\text{thresh}} = 0.01$. These weights were selected by extracting non-dominated solutions along the empirical Pareto frontier of an offline 100-trial hyperparameter sweep (shown in Fig.~\ref{fig:pareto_frontier}).
 \end{itemize}
 Network traces and vehicular workload occupancy $U_i^{\text{crit}}(t)$ are driven by empirical V2X channel datasets, with total cell uplink capacity modeled as a dynamic sinusoidal envelope ($B_{\text{cell}}(t) = B_{\text{max}}(0.8 + 0.2\sin(t))$) to assess performance under shared infrastructure bottlenecks.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.92\linewidth]{plots/pareto_frontier_tradeoffs.pdf}
+\caption{Empirical Pareto frontiers extracted from a 100-trial offline hyperparameter sweep: (a) Global system utility ($\mathcal{U}$) vs. compute contention ($\sum c_i U_i^{\text{crit}}$) colored by learning gain weight $\delta$; (b) Model drift ($\sum D_i$) vs. cumulative network cost (MB) colored by utility. Dashed red curves identify non-dominated Pareto configurations utilized to calibrate operational engine weights.}
+\label{fig:pareto_frontier}
+\end{figure*}
 
 \begin{table*}[t]
 \caption{Comprehensive Benchmark Results Across Non-IID Dirichlet Partitions (250 Communication Rounds)}

@@ -22,11 +22,23 @@ def identify_pareto_frontier(df, x_col, y_col, maximize_x=False, maximize_y=True
     return pd.DataFrame(pareto_front, columns=df.columns)
 
 
-def main(input_csv="final_sweep_rankings.csv"):
-    path = Path(input_csv)
-    if not path.exists():
-        raise FileNotFoundError(f"Sweep rankings file not found: {path}")
+def main(input_csv=""):
+    search_paths = [
+        Path(input_csv) if input_csv else None,
+        Path("final_sweep_rankings.csv"),
+        Path("final_metrics/final_sweep_rankings.csv"),
+    ]
+    path = None
+    for p in search_paths:
+        if p and p.exists():
+            path = p
+            break
+    if not path:
+        raise FileNotFoundError("Sweep rankings file not found in root or final_metrics/")
+
     df = pd.read_csv(path)
+    output_dir = Path("plots")
+    output_dir.mkdir(exist_ok=True)
 
     plt.style.use("seaborn-v0_8-whitegrid")
     plt.rcParams.update(
@@ -117,9 +129,76 @@ def main(input_csv="final_sweep_rankings.csv"):
         ax.set_ylabel(y_label)
         ax.legend(loc="best")
         fig.tight_layout()
+        fig.savefig(output_dir / filename, dpi=300, bbox_inches="tight")
         fig.savefig(filename, dpi=300, bbox_inches="tight")
         plt.close(fig)
-        print(f"Saved {filename}")
+        print(f"Saved {output_dir / filename} and {filename}")
+
+    # Generate 1x2 Publication-ready Composite Pareto Trade-off Figure
+    fig_comp, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+    # Panel 1: Utility vs Compute Interference
+    sc1 = ax1.scatter(
+        df["interference"],
+        df["utility"],
+        c=df["delta"],
+        cmap="viridis",
+        alpha=0.6,
+        edgecolors="w",
+        linewidth=0.5,
+        label="Sweep Trials",
+    )
+    cb1 = plt.colorbar(sc1, ax=ax1)
+    cb1.set_label(r"Learning Gain Weight ($\delta$)")
+    pareto1 = identify_pareto_frontier(df, "interference", "utility", maximize_x=False, maximize_y=True)
+    if not pareto1.empty:
+        ax1.plot(
+            pareto1["interference"],
+            pareto1["utility"],
+            "r--o",
+            linewidth=2,
+            markersize=5,
+            label="Pareto Frontier",
+        )
+    ax1.set_xlabel(r"Compute Interference ($\sum c_i U_i^{\mathrm{crit}}$)")
+    ax1.set_ylabel(r"Global System Utility ($\mathcal{U}$)")
+    ax1.set_title("(a) Utility vs. Compute Interference", fontsize=11, fontweight="bold")
+    ax1.legend(loc="lower right")
+
+    # Panel 2: Model Drift vs Network Cost
+    sc2 = ax2.scatter(
+        df["network_mbs"],
+        df["drift"],
+        c=df["utility"],
+        cmap="viridis",
+        alpha=0.6,
+        edgecolors="w",
+        linewidth=0.5,
+        label="Sweep Trials",
+    )
+    cb2 = plt.colorbar(sc2, ax=ax2)
+    cb2.set_label("Global Utility")
+    pareto2 = identify_pareto_frontier(df, "network_mbs", "drift", maximize_x=False, maximize_y=False)
+    if not pareto2.empty:
+        ax2.plot(
+            pareto2["network_mbs"],
+            pareto2["drift"],
+            "r--o",
+            linewidth=2,
+            markersize=5,
+            label="Pareto Frontier",
+        )
+    ax2.set_xlabel("Network Cost (MB)")
+    ax2.set_ylabel(r"Model Drift ($\sum D_i$)")
+    ax2.set_title("(b) Model Drift vs. Network Cost", fontsize=11, fontweight="bold")
+    ax2.legend(loc="upper right")
+
+    fig_comp.tight_layout()
+    composite_pdf = output_dir / "pareto_frontier_tradeoffs.pdf"
+    fig_comp.savefig(composite_pdf, dpi=300, bbox_inches="tight")
+    fig_comp.savefig("pareto_frontier_tradeoffs.pdf", dpi=300, bbox_inches="tight")
+    plt.close(fig_comp)
+    print(f"Saved {composite_pdf} and pareto_frontier_tradeoffs.pdf")
 
 
 if __name__ == "__main__":
