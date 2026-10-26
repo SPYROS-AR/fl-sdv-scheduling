@@ -33,7 +33,6 @@ class EnvironmentBuilder:
         if os.path.isfile(dataset_path):
             print(f"Using existing network dataset: {dataset_path}")
             return
-
         if os.path.exists(cls.TARGET_FOLDER) and not os.path.isdir(
             os.path.join(cls.TARGET_FOLDER, ".git")
         ):
@@ -43,15 +42,12 @@ class EnvironmentBuilder:
                 f"Directory '{cls.TARGET_FOLDER}' exists but lacks git repository data. Re-initializing..."
             )
             shutil.rmtree(cls.TARGET_FOLDER)
-
         if not os.path.exists(cls.TARGET_FOLDER):
             print(f"Cloning repository from {cls.REPO_URL}...")
             cls._run_command(["git", "clone", cls.REPO_URL, cls.TARGET_FOLDER])
-
         if os.path.isfile(dataset_path):
             print(f"Using existing network dataset: {dataset_path}")
             return
-
         print("Generating network dataset (skipping unused optional dependencies)...")
         cls._run_command(
             [
@@ -66,13 +62,11 @@ class EnvironmentBuilder:
             cwd=cls.TARGET_FOLDER,
             quiet=False,
         )
-
         if not os.path.isfile(dataset_path):
             raise FileNotFoundError(
                 "The network dataset generator completed without creating "
                 f"{dataset_path}. Check the generator output above."
             )
-
         print("External setup complete!")
 
 
@@ -93,10 +87,8 @@ def dirichlet_partition_indices(
         raise ValueError("Dirichlet alpha must be positive.")
     if num_partitions < 1:
         raise ValueError("num_partitions must be at least 1.")
-
     labels = np.asarray(labels, dtype=np.int64)
     rng = np.random.default_rng(seed)
-
     for _ in range(1000):
         partitions = [[] for _ in range(num_partitions)]
         for class_id in np.unique(labels):
@@ -110,12 +102,10 @@ def dirichlet_partition_indices(
             )
             for client_id, indices in enumerate(np.split(class_indices, split_points)):
                 partitions[client_id].extend(indices.tolist())
-
         if min(map(len, partitions)) >= min_partition_size:
             for indices in partitions:
                 rng.shuffle(indices)
             return partitions
-
     raise RuntimeError(
         "Could not create partitions meeting min_partition_size after 1000 attempts. "
         "Try a larger alpha or a smaller minimum size."
@@ -151,7 +141,6 @@ class GTSRBFederatedDataset:
         seed: int = SEED,
     ):
         self.train_dataset = GTSRB(root=root, split="train", download=True)
-
         labels = getattr(self.train_dataset, "targets", None)
         if labels is None:
             samples = getattr(self.train_dataset, "_samples", None)
@@ -160,7 +149,6 @@ class GTSRBFederatedDataset:
                     "Unable to read GTSRB training labels from this torchvision version."
                 )
             labels = [target for _, target in samples]
-
         self.client_indices = dirichlet_partition_indices(
             labels=labels,
             num_partitions=num_partitions,
@@ -177,7 +165,6 @@ def setup_dataset(
     """Build the requested federated dataset with a configurable Dirichlet alpha."""
     if alpha <= 0:
         raise ValueError("Dirichlet alpha must be positive.")
-
     name = dataset_name.lower()
     if name == "gtsrb":
         return GTSRBFederatedDataset(
@@ -185,12 +172,10 @@ def setup_dataset(
             alpha=alpha,
             seed=SEED,
         )
-
     if name not in {"cifar10", DATASET.lower()}:
         raise ValueError(
             f"Unsupported dataset '{dataset_name}'. Choose 'cifar10' or 'gtsrb'."
         )
-
     partitioner = flwr_datasets.partitioner.DirichletPartitioner(
         num_partitions=NUM_VEHICLES,
         partition_by="label",

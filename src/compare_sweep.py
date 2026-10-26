@@ -8,14 +8,11 @@ def parse_sweep_file(file_path: str) -> dict | None:
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             content = json.load(file)
-
         if "dynamic" not in content:
             return None
-
         result = content["dynamic"]
         params = result.get("params", {})
         losses = result.get("losses", [])
-
         return {
             "job_id": params.get("job_id"),
             "alpha": params.get("alpha"),
@@ -27,6 +24,7 @@ def parse_sweep_file(file_path: str) -> dict | None:
             "interference": round(result.get("interference", 0.0), 2),
             "drift": round(result.get("drift", 0.0), 2),
             "network_mbs": round(result.get("mbs", 0.0), 2),
+            "uplink_mbs": round(result.get("uplink_mbs", 0.0), 2),
         }
     except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
         print(f"Error parsing {file_path}: {exc}")
@@ -36,14 +34,14 @@ def parse_sweep_file(file_path: str) -> dict | None:
 def main():
     files = glob.glob("sweep_outputs/result_*.json")
     print(f"Reading {len(files)} experiment results from sweep_outputs/...\n")
-
     data = [parsed for path in files if (parsed := parse_sweep_file(path)) is not None]
     if not data:
         print("No valid data could be extracted.")
         return
 
+    # Minimize final_loss (ascending=True), Maximize utility (ascending=False)
     df_ranked = pd.DataFrame(data).sort_values(
-        by=["final_loss", "utility"], ascending=[True, True]
+        by=["final_loss", "utility"], ascending=[True, False]
     )
     print("================ TOP 5 PARAMETER COMBINATIONS ================")
     print(df_ranked.head(5).to_string(index=False))

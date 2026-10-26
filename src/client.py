@@ -1,5 +1,6 @@
 import warnings
 from collections import OrderedDict
+from pathlib import Path
 
 import flwr as fl
 import numpy as np
@@ -20,6 +21,7 @@ from constants import (
     GAMMA,
     LEARNING_RATE,
     MAX_CONTINUE_ROUNDS,
+    MIN_EPOCH_SLACK,
     MODEL_SIZE_MB,
     MOMENTUM,
 )
@@ -35,11 +37,12 @@ class FLVehicle(fl.client.NumPyClient):
         num_classes: int = 10,
         algorithm: str = "fedavg",
         fedprox_mu: float = FEDPROX_MU,
+        exp_name: str = "dynamic",
     ):
         self.id = partition_id
         self.trainloader = trainloader
         self.valloader = valloader
-        self.M = MODEL_SIZE_MB  # Keep policy model size separate from measured payload bytes.
+        self.M = MODEL_SIZE_MB
         self.rho = epochs_per_compute
         self.alpha, self.beta = ALPHA, BETA
         self.gamma, self.delta = GAMMA, DELTA
@@ -51,13 +54,46 @@ class FLVehicle(fl.client.NumPyClient):
         self._continue_count = 0
         self.criterion = nn.CrossEntropyLoss()
         self.mode = "dynamic"
-
         self.algorithm = algorithm.lower()
         self.fedprox_mu = float(fedprox_mu)
+        self.exp_name = exp_name
+
         if self.algorithm not in {"fedavg", "fedprox"}:
             raise ValueError(f"Unsupported algorithm: {algorithm}")
         if self.fedprox_mu < 0:
             raise ValueError("FedProx mu must be non-negative.")
+
+        self._cache_dir = Path(".client_cache") / self.exp_name
+        self._cache_dir.mkdir(parents=True, exist_ok=True)
+        self._state_file = self._cache_dir / f"client_{self.id}.pt"
+        self._load_persistent_state()
+
+    def _load_persistent_state(self):
+        """Restore client state across Ray worker instantiations."""
+        if self._state_file.is_file():
+            try:
+                ckpt = torch.load(
+                    self._state_file, map_location=DEVICE, weights_only=False
+                )
+                self._in_continue = bool(ckpt.get("in_continue", False))
+                self._last_gain = ckpt.get("last_gain", None)
+                self._continue_count = int(ckpt.get("continue_count", 0))
+                if self._in_continue and "model_state" in ckpt:
+                    self.model.load_state_dict(ckpt["model_state"], strict=True)
+            except Exception:
+                self._in_continue = False
+                self._last_gain = None
+                self._continue_count = 0
+
+    def _save_persistent_state(self):
+        """Persist client state to disk so Ray actor recycling never loses CONTINUE weights."""
+        ckpt = {
+            "in_continue": self._in_continue,
+            "last_gain": self._last_gain,
+            "continue_count": self._continue_count,
+            "model_state": self.model.state_dict() if self._in_continue else None,
+        }
+        torch.save(ckpt, self._state_file)
 
     def get_parameters(self, config=None):
         return [
@@ -77,6 +113,7 @@ class FLVehicle(fl.client.NumPyClient):
         self.model.load_state_dict(state_dict, strict=True)
 
     def fit(self, parameters, config):
+        self._load_persistent_state()
         state = self._extract_state(config)
         proximal_mu = self.fedprox_mu if self.algorithm == "fedprox" else 0.0
 
@@ -89,10 +126,14 @@ class FLVehicle(fl.client.NumPyClient):
             # but update global reference weights for drift and proximal regularization
             state_dict = OrderedDict(
                 (key, torch.as_tensor(value, device=DEVICE))
-                for key, value in zip(self._temp_global_model.state_dict().keys(), parameters)
+                for key, value in zip(
+                    self._temp_global_model.state_dict().keys(), parameters
+                )
             )
             self._temp_global_model.load_state_dict(state_dict, strict=True)
-            global_weights = [p.detach().clone() for p in self._temp_global_model.parameters()]
+            global_weights = [
+                p.detach().clone() for p in self._temp_global_model.parameters()
+            ]
 
         optimizer = torch.optim.SGD(
             self.model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM
@@ -110,7 +151,9 @@ class FLVehicle(fl.client.NumPyClient):
     def evaluate(self, parameters, config):
         state_dict = OrderedDict(
             (key, torch.as_tensor(value, device=DEVICE))
-            for key, value in zip(self._temp_global_model.state_dict().keys(), parameters)
+            for key, value in zip(
+                self._temp_global_model.state_dict().keys(), parameters
+            )
         )
         self._temp_global_model.load_state_dict(state_dict, strict=True)
         loss, accuracy = self._validate_model(self._temp_global_model)
@@ -127,6 +170,7 @@ class FLVehicle(fl.client.NumPyClient):
         curr_loss = self._validate()
         gain = max(0.0, init_loss - curr_loss)
         self._last_gain = gain
+        self._save_persistent_state()
 
         metrics = {
             "status": "SYNC",
@@ -135,42 +179,51 @@ class FLVehicle(fl.client.NumPyClient):
             "c_net": self.M / max(0.1, state["bandwidth"]),
             "c_drift": drift,
             "gain": gain,
+            "was_in_continue": 0,
         }
         return self.get_parameters(), len(self.trainloader.dataset), metrics
 
     def _run_dynamic(
         self, parameters, optimizer, global_weights, init_loss, state, proximal_mu
     ):
+        was_in_continue = int(bool(self._in_continue))
+
         # 1. Compute Starvation: FL yields to higher-priority safety workloads
-        if state["max_c_i"] < (1.0 / self.rho):
+        # Require at least MIN_EPOCH_SLACK / rho compute slack before starting local training
+        if state["max_c_i"] < (MIN_EPOCH_SLACK / self.rho):
             self._in_continue = False
             self._continue_count = 0
-            return [], 0, self._empty_metrics("WAIT")
+            self._save_persistent_state()
+            return [], 0, self._empty_metrics("WAIT", was_in_continue)
 
-        # 2. Poor Channel Bandwidth AND Low Potential Learning Gain (WAIT State)
+        # 2. Poor Channel Bandwidth AND Low Prior Learning Gain (WAIT State)
         is_bw_poor = state["bandwidth"] < state["bw_threshold"]
         prior_gain = getattr(self, "_last_gain", None)
-        if is_bw_poor and prior_gain is not None and prior_gain <= state["gain_threshold"]:
+        if (
+            is_bw_poor
+            and prior_gain is not None
+            and prior_gain <= state["gain_threshold"]
+        ):
             self._in_continue = False
             self._continue_count = 0
-            return [], 0, self._empty_metrics("WAIT")
+            self._save_persistent_state()
+            return [], 0, self._empty_metrics("WAIT", was_in_continue)
 
         history = [init_loss]
         epoch, curr_loss = 0, init_loss
+        max_allowed_epochs = max(1, int(np.floor(state["max_c_i"] * self.rho)))
 
-        while True:
-            if ((epoch + 1.0) / self.rho) > state["max_c_i"]:
-                break
-
+        while epoch < min(self.rho, max_allowed_epochs):
             self._train_epoch(optimizer, global_weights, proximal_mu)
             epoch += 1
             curr_loss = self._validate()
             smoothed = EMA_WEIGHT * curr_loss + (1.0 - EMA_WEIGHT) * history[-1]
             history.append(smoothed)
 
+            # Need at least 2 local epochs (3 points in history) to fit 3-parameter curve
             if epoch < 2:
                 continue
-            if epoch >= self.rho:
+            if epoch >= min(self.rho, max_allowed_epochs):
                 break
 
             predicted_loss = self._predict_loss(history)
@@ -196,15 +249,10 @@ class FLVehicle(fl.client.NumPyClient):
         if epoch == 0:
             self._in_continue = False
             self._continue_count = 0
-            return [], 0, self._empty_metrics("WAIT")
+            self._save_persistent_state()
+            return [], 0, self._empty_metrics("WAIT", was_in_continue)
 
         is_sync = state["bandwidth"] >= state["bw_threshold"]
-
-        # Transition to WAIT if bandwidth is constrained and progress was negligible
-        if not is_sync and actual_gain <= state["gain_threshold"]:
-            self._in_continue = False
-            self._continue_count = 0
-            return [], 0, self._empty_metrics("WAIT")
 
         if is_sync:
             status = "SYNC"
@@ -221,13 +269,16 @@ class FLVehicle(fl.client.NumPyClient):
                 status = "CONTINUE"
                 self._in_continue = True
 
+        self._save_persistent_state()
+
         metrics = {
             "status": status,
             "epochs_trained": epoch,
             "c_comp": (epoch / self.rho) * state["u_crit"],
             "c_net": (self.M / max(0.1, state["bandwidth"])) if is_sync else 0.0,
-            "c_drift": self._compute_drift(global_weights) if epoch > 0 else 0.0,
+            "c_drift": self._compute_drift(global_weights),
             "gain": actual_gain,
+            "was_in_continue": was_in_continue,
         }
         if is_sync:
             return self.get_parameters(), len(self.trainloader.dataset), metrics
@@ -241,12 +292,12 @@ class FLVehicle(fl.client.NumPyClient):
             "max_c_i": max(0.0, 1.0 - u_crit),
             "bandwidth": float(config.get("bandwidth", 10.0)),
             "tau_continue": float(config.get("tau_continue", 0.1)),
-            "drift_threshold": float(config.get("drift_threshold", 5.0)),
+            "drift_threshold": float(config.get("drift_threshold", 20.0)),
             "gain_threshold": float(config.get("gain_threshold", 0.01)),
             "bw_threshold": float(config.get("bw_threshold", 20.0)),
         }
 
-    def _empty_metrics(self, status):
+    def _empty_metrics(self, status, was_in_continue: int = 0):
         return {
             "status": status,
             "epochs_trained": 0,
@@ -254,6 +305,7 @@ class FLVehicle(fl.client.NumPyClient):
             "c_net": 0.0,
             "c_drift": 0.0,
             "gain": 0.0,
+            "was_in_continue": was_in_continue,
         }
 
     def _train_epoch(self, optimizer, global_weights=None, proximal_mu: float = 0.0):
@@ -263,7 +315,6 @@ class FLVehicle(fl.client.NumPyClient):
             y = batch["label"].to(DEVICE, dtype=torch.long)
             optimizer.zero_grad()
             loss = self.criterion(self.model(x), y)
-
             if proximal_mu > 0.0:
                 if global_weights is None:
                     raise ValueError("FedProx requires frozen global weights.")
@@ -275,7 +326,6 @@ class FLVehicle(fl.client.NumPyClient):
                         (local_param - global_param) ** 2
                     )
                 loss = loss + 0.5 * proximal_mu * proximal_term
-
             loss.backward()
             optimizer.step()
 
@@ -300,7 +350,6 @@ class FLVehicle(fl.client.NumPyClient):
                 total_loss += self.criterion(logits, y).item() * batch_size
                 total_correct += (logits.argmax(dim=1) == y).sum().item()
                 total_examples += batch_size
-
         if total_examples == 0:
             return float("nan"), float("nan")
         return total_loss / total_examples, total_correct / total_examples
@@ -312,16 +361,13 @@ class FLVehicle(fl.client.NumPyClient):
     def _predict_loss(self, history):
         if len(history) < 3:
             return float(history[-1])
-
         x_data = np.arange(len(history), dtype=np.float64)
         y_data = np.array(history, dtype=np.float64)
-
         l_inf_init = max(0.0, float(np.min(y_data) * 0.8))
         a_init = max(1e-3, float(y_data[0] - l_inf_init))
         b_init = 0.5
         p0 = [l_inf_init, a_init, b_init]
         bounds = ([0.0, 0.0, 1e-4], [float(np.min(y_data)), np.inf, 10.0])
-
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", OptimizeWarning)
@@ -340,6 +386,8 @@ class FLVehicle(fl.client.NumPyClient):
     def _compute_drift(self, global_weights):
         with torch.no_grad():
             sum_sq = torch.zeros((), device=DEVICE)
-            for local_param, global_param in zip(self.model.parameters(), global_weights):
+            for local_param, global_param in zip(
+                self.model.parameters(), global_weights
+            ):
                 sum_sq += torch.sum((local_param - global_param) ** 2)
             return torch.sqrt(sum_sq).item()

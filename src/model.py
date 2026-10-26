@@ -34,21 +34,17 @@ class ResNet9FL(nn.Module):
     ):
         super().__init__()
         self.prep = ConvGNBlock(in_channels, 64, pool=True)
-
         self.layer1 = ConvGNBlock(64, 128, pool=True)
         self.res1 = nn.Sequential(
             ConvGNBlock(128, 128, pool=False),
             ConvGNBlock(128, 128, pool=False),
         )
-
         self.layer2 = ConvGNBlock(128, 256, pool=True)
-
         self.layer3 = ConvGNBlock(256, 256, pool=True)
         self.res2 = nn.Sequential(
             ConvGNBlock(256, 256, pool=False),
             ConvGNBlock(256, 256, pool=False),
         )
-
         self.classifier = nn.Sequential(
             nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten(),

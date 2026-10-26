@@ -1,13 +1,11 @@
 import argparse
 import json
 import os
-
 import pandas as pd
 import torch
 
 from constants import NUM_VEHICLES
 from scheduler import run_simulation
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -40,7 +38,6 @@ if __name__ == "__main__":
         dirichlet_alpha=args.dirichlet_alpha,
         fedprox_mu=args.fedprox_mu,
     )
-
     results["dynamic"]["params"] = {
         "job_id": args.job_id,
         "alpha": args.alpha,
@@ -51,7 +48,6 @@ if __name__ == "__main__":
         "dirichlet_alpha": args.dirichlet_alpha,
         "fedprox_mu": args.fedprox_mu,
     }
-
     output_dir = "sweep_outputs"
     os.makedirs(output_dir, exist_ok=True)
     out_file = os.path.join(output_dir, f"result_{args.job_id}.json")

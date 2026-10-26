@@ -1,7 +1,6 @@
 """Plot Pareto-style views of completed hyperparameter sweeps."""
 
 from pathlib import Path
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -12,7 +11,6 @@ def identify_pareto_frontier(df, x_col, y_col, maximize_x=False, maximize_y=True
     sorted_df = df.sort_values(by=x_col, ascending=not maximize_x)
     pareto_front = []
     current_best_y = -np.inf if maximize_y else np.inf
-
     for _, row in sorted_df.iterrows():
         y_val = row[y_col]
         is_better = y_val > current_best_y if maximize_y else y_val < current_best_y
@@ -34,7 +32,9 @@ def main(input_csv=""):
             path = p
             break
     if not path:
-        raise FileNotFoundError("Sweep rankings file not found in root or final_metrics/")
+        raise FileNotFoundError(
+            "Sweep rankings file not found in root or final_metrics/"
+        )
 
     df = pd.read_csv(path)
     output_dir = Path("plots")
@@ -134,10 +134,7 @@ def main(input_csv=""):
         plt.close(fig)
         print(f"Saved {output_dir / filename} and {filename}")
 
-    # Generate 1x2 Publication-ready Composite Pareto Trade-off Figure
     fig_comp, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
-
-    # Panel 1: Utility vs Compute Interference
     sc1 = ax1.scatter(
         df["interference"],
         df["utility"],
@@ -150,7 +147,9 @@ def main(input_csv=""):
     )
     cb1 = plt.colorbar(sc1, ax=ax1)
     cb1.set_label(r"Learning Gain Weight ($\delta$)")
-    pareto1 = identify_pareto_frontier(df, "interference", "utility", maximize_x=False, maximize_y=True)
+    pareto1 = identify_pareto_frontier(
+        df, "interference", "utility", maximize_x=False, maximize_y=True
+    )
     if not pareto1.empty:
         ax1.plot(
             pareto1["interference"],
@@ -162,10 +161,11 @@ def main(input_csv=""):
         )
     ax1.set_xlabel(r"Compute Interference ($\sum c_i U_i^{\mathrm{crit}}$)")
     ax1.set_ylabel(r"Global System Utility ($\mathcal{U}$)")
-    ax1.set_title("(a) Utility vs. Compute Interference", fontsize=11, fontweight="bold")
+    ax1.set_title(
+        "(a) Utility vs. Compute Interference", fontsize=11, fontweight="bold"
+    )
     ax1.legend(loc="lower right")
 
-    # Panel 2: Model Drift vs Network Cost
     sc2 = ax2.scatter(
         df["network_mbs"],
         df["drift"],
@@ -178,7 +178,9 @@ def main(input_csv=""):
     )
     cb2 = plt.colorbar(sc2, ax=ax2)
     cb2.set_label("Global Utility")
-    pareto2 = identify_pareto_frontier(df, "network_mbs", "drift", maximize_x=False, maximize_y=False)
+    pareto2 = identify_pareto_frontier(
+        df, "network_mbs", "drift", maximize_x=False, maximize_y=False
+    )
     if not pareto2.empty:
         ax2.plot(
             pareto2["network_mbs"],

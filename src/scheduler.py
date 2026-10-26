@@ -1,6 +1,7 @@
 import logging
+import shutil
 from collections import OrderedDict
-from typing import Optional, Tuple
+from pathlib import Path
 
 import datasets
 import flwr as fl
@@ -48,16 +49,8 @@ def weighted_accuracy(metrics):
 
 
 def build_centralized_eval_fn(dataset_name: str = "cifar10"):
-    """Return a centralized evaluation function for the global model.
-
-    The returned callable follows Flower's ``evaluate_fn`` signature:
-    ``(server_round, parameters_ndarrays, config) -> Optional[Tuple[float, dict]]``.
-    It evaluates the aggregated global model on the *official* held-out test
-    split (not the clients' local validation partitions) so that reported
-    accuracy numbers are directly comparable across experiments and papers.
-    """
+    """Return a centralized evaluation function for the global model."""
     dataset_name = dataset_name.lower()
-
     transforms = []
     if dataset_name == "gtsrb":
         transforms.append(Resize((32, 32)))
@@ -69,20 +62,22 @@ def build_centralized_eval_fn(dataset_name: str = "cifar10"):
 
     if dataset_name == "gtsrb":
         test_dataset = GTSRB(
-            root="dataset/vision", split="test", download=True, transform=eval_transforms
+            root="dataset/vision",
+            split="test",
+            download=True,
+            transform=eval_transforms,
         )
     else:
         test_dataset = CIFAR10(
             root="dataset/vision", train=False, download=True, transform=eval_transforms
         )
-
     test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
 
     def evaluate(
         server_round: int,
         parameters_ndarrays: list[np.ndarray],
         config: dict[str, fl.common.Scalar],
-    ) -> Optional[Tuple[float, dict]]:
+    ) -> tuple[float, dict] | None:
         net = model.load_model(num_classes=num_classes)
         state_dict = OrderedDict(
             (key, torch.as_tensor(value, device=DEVICE))
@@ -90,12 +85,10 @@ def build_centralized_eval_fn(dataset_name: str = "cifar10"):
         )
         net.load_state_dict(state_dict, strict=True)
         net.eval()
-
         criterion = torch.nn.CrossEntropyLoss()
         total_loss = 0.0
         total_correct = 0
         total_examples = 0
-
         with torch.no_grad():
             for images, labels in test_loader:
                 images = images.to(DEVICE)
@@ -105,7 +98,6 @@ def build_centralized_eval_fn(dataset_name: str = "cifar10"):
                 total_loss += criterion(logits, labels).item() * batch_size
                 total_correct += (logits.argmax(dim=1) == labels).sum().item()
                 total_examples += batch_size
-
         if total_examples == 0:
             return None
         loss = total_loss / total_examples
@@ -116,10 +108,17 @@ def build_centralized_eval_fn(dataset_name: str = "cifar10"):
 
 
 class ClientFactory:
-    def __init__(self, dataset, config: dict, dataset_name: str = "cifar10"):
+    def __init__(
+        self,
+        dataset,
+        config: dict,
+        dataset_name: str = "cifar10",
+        exp_name: str = "dynamic",
+    ):
         self.dataset = dataset
         self.config = config
         self.dataset_name = dataset_name.lower()
+        self.exp_name = exp_name
         transforms = []
         if self.dataset_name == "gtsrb":
             transforms.append(Resize((32, 32)))
@@ -144,11 +143,9 @@ class ClientFactory:
                 raise ValueError(
                     f"GTSRB client {client_id} has fewer than two examples."
                 )
-
             num_val = max(1, int(round(len(indices) * TEST_SPLIT)))
             num_val = min(num_val, len(indices) - 1)
             val_indices, train_indices = indices[:num_val], indices[num_val:]
-
             train_dataset = DictImageSubset(
                 self.dataset.train_dataset, train_indices, self.transforms
             )
@@ -186,6 +183,7 @@ class ClientFactory:
             num_classes=num_classes,
             algorithm=self.config["algorithm"],
             fedprox_mu=self.config["fedprox_mu"],
+            exp_name=self.exp_name,
         )
         vehicle.alpha = self.config["alpha"]
         vehicle.beta = self.config["beta"]
@@ -226,10 +224,16 @@ def run_simulation(
         dataset_name=dataset_name,
         alpha=dirichlet_alpha,
     )
-    all_results = {}
 
+    all_results = {}
     for exp in experiments:
         exp_name = f"{exp}_{job_id}" if job_id else exp
+
+        # Clean any stale disk cache from previous runs of the same experiment name
+        cache_dir = Path(".client_cache") / exp_name
+        if cache_dir.exists():
+            shutil.rmtree(cache_dir)
+
         if exp == "dynamic_fedprox":
             mode = "dynamic"
             algorithm = "fedprox"
@@ -254,10 +258,12 @@ def run_simulation(
             "algorithm": algorithm,
             "fedprox_mu": fedprox_mu,
         }
+
         factory = ClientFactory(
             federated_dataset,
             client_config,
             dataset_name=dataset_name,
+            exp_name=exp_name,
         )
 
         strategy = DynamicFLStrategy(
@@ -283,6 +289,9 @@ def run_simulation(
             client_resources={"num_cpus": 1, "num_gpus": gpus_per_client},
         )
 
+        if cache_dir.exists():
+            shutil.rmtree(cache_dir, ignore_errors=True)
+
         losses = (
             [value for _, value in history.losses_distributed]
             if getattr(history, "losses_distributed", None)
@@ -290,16 +299,20 @@ def run_simulation(
         )
         all_results[exp] = {
             "mbs": strategy.total_transmitted_mb,
+            "uplink_mbs": strategy.total_uplink_mb,
             "network_cost": strategy.total_c_net,
             "losses": losses,
             "interference": strategy.total_c_comp,
             "drift": strategy.total_c_drift,
             "utility": strategy.total_utility,
+            "waits": strategy.total_waits,
+            "continues": strategy.total_continues,
+            "syncs": strategy.total_syncs,
+            "dropped": strategy.total_dropped,
             "dataset": dataset_name,
             "dirichlet_alpha": dirichlet_alpha,
             "algorithm": algorithm,
             "mode": mode,
             "fedprox_mu": fedprox_mu if algorithm == "fedprox" else 0.0,
         }
-
     return all_results

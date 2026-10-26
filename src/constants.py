@@ -3,7 +3,9 @@ import torch
 # --- Simulation & Networking Constants ---
 NUM_SAMPLES = 100000
 NUM_VEHICLES = 10
-TOTAL_BANDWIDTH = 95.0  # Cell capacity envelope (MiB per communication round, ~10 clients)
+TOTAL_BANDWIDTH = (
+    95.0  # Cell capacity envelope (MiB per communication round, ~10 clients)
+)
 MAX_ALLOWED_DRIFT = 20.0  # Max L2 distance threshold for model weights
 MODEL_SIZE_MB = 9.31  # Exact ResNet-9 FP32 parameter payload footprint (MiB)
 
@@ -34,3 +36,6 @@ GAIN_THRESHOLD = 0.01
 BW_THRESHOLD = 20.0
 EMA_WEIGHT = 0.3
 MAX_CONTINUE_ROUNDS = 5
+MIN_EPOCH_SLACK = (
+    2.0  # Minimum epoch slack required to start curve-fitted dynamic training
+)

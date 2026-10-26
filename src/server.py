@@ -2,13 +2,10 @@ import csv
 import math
 import random
 import time
-from typing import Optional, Tuple, Union
 
 import flwr as fl
-import numpy as np
 import pandas as pd
 from flwr.common import (
-    EvaluateRes,
     FitIns,
     FitRes,
     Parameters,
@@ -32,7 +29,7 @@ from constants import (
 
 
 class CSVLogger:
-    """Round-level CSV logger with explicit communication/time/accuracy fields."""
+    """Round-level CSV logger with explicit uplink and total communication fields."""
 
     HEADER = [
         "round",
@@ -50,6 +47,8 @@ class CSVLogger:
         "total_c_drift",
         "total_gain",
         "total_utility",
+        "uplink_mb",
+        "total_uplink_mb",
         "transmitted_mb",
         "total_transmitted_mb",
         "mean_model_drift",
@@ -63,7 +62,6 @@ class CSVLogger:
     def __init__(self, exp_name: str):
         self.csv_file = f"metrics_{exp_name}.csv"
         self.pending_metrics = {}
-        # Start a clean run file so old schemas or duplicated rounds are not appended.
         with open(self.csv_file, "w", newline="") as file:
             csv.writer(file).writerow(self.HEADER)
 
@@ -121,29 +119,26 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         self.alpha, self.beta = alpha, beta
         self.gamma, self.delta = gamma, delta
         self.logger = CSVLogger(exp_name)
-
         self.start_time = time.perf_counter()
         self.round_started_at = {}
-        self.round_downlink_mb = {}
+        self.round_n_clients = {}
         self.model_payload_mb = 0.0
+        self.total_uplink_mb = 0.0
         self.total_transmitted_mb = 0.0
-
         self.total_c_net = self.total_c_comp = self.total_c_drift = 0.0
         self.total_gain = self.total_utility = 0.0
         self.total_syncs = self.total_continues = self.total_waits = 0
         self.total_dropped = 0
-        self.last_centralized_accuracy: Optional[float] = None
+        self.last_centralized_accuracy: float | None = None
 
     def evaluate(
         self, server_round: int, parameters: Parameters
-    ) -> Optional[Tuple[float, dict[str, Scalar]]]:
+    ) -> tuple[float, dict[str, Scalar]] | None:
         """Override to capture centralized evaluation metrics from evaluate_fn."""
         result = super().evaluate(server_round, parameters)
         if result is not None:
             _, eval_metrics = result
-            self.last_centralized_accuracy = eval_metrics.get(
-                "centralized_accuracy"
-            )
+            self.last_centralized_accuracy = eval_metrics.get("centralized_accuracy")
         else:
             self.last_centralized_accuracy = None
         return result
@@ -157,12 +152,9 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         base_configs = super().configure_fit(server_round, parameters, client_manager)
         self.round_started_at[server_round] = time.perf_counter()
 
-        # Raw parameter-array payload size (MiB; labeled MB in output for readability).
         arrays = parameters_to_ndarrays(parameters)
         self.model_payload_mb = sum(array.nbytes for array in arrays) / (1024**2)
-        downlink_mb = len(base_configs) * self.model_payload_mb
-        self.round_downlink_mb[server_round] = downlink_mb
-        self.total_transmitted_mb += downlink_mb
+        self.round_n_clients[server_round] = len(base_configs)
 
         custom_configs = []
         n_clients = len(base_configs)
@@ -201,14 +193,21 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         drift_sum = 0.0
         drift_clients = 0
         upload_clients = 0
+        downlink_Check_clients = 0
 
-        # Randomized admission order under the modeled cell-capacity envelope.
+        # Modeled cell-capacity envelope
         current_b_max = TOTAL_BANDWIDTH * (0.8 + 0.2 * math.sin(server_round))
-        random.shuffle(results)
+        rng = random.Random(server_round)
+        shuffled_results = list(results)
+        rng.shuffle(shuffled_results)
 
-        for client, res in results:
+        for client, res in shuffled_results:
             metrics = res.metrics
             status = metrics.get("status", "WAIT")
+            was_in_continue = int(metrics.get("was_in_continue", 0))
+            if not was_in_continue and status != "WAIT":
+                downlink_Check_clients += 1
+
             r_c_comp += float(metrics.get("c_comp", 0.0))
             r_gain += float(metrics.get("gain", 0.0))
 
@@ -216,7 +215,6 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
                 drift_sum += float(metrics.get("c_drift", 0.0))
                 drift_clients += 1
 
-            # A non-empty update reached the server, even if admission later drops it.
             if res.num_examples > 0:
                 upload_clients += 1
 
@@ -246,7 +244,6 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
             - (self.beta * r_c_comp)
             - (self.gamma * r_c_drift)
         )
-
         self._record_round(
             r_syncs,
             r_continues,
@@ -259,10 +256,14 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
             r_utility,
         )
 
-        downlink_mb = self.round_downlink_mb.pop(server_round, 0.0)
-        upload_mb = upload_clients * self.model_payload_mb
-        round_transmitted_mb = downlink_mb + upload_mb
-        self.total_transmitted_mb += upload_mb
+        n_configured = self.round_n_clients.pop(server_round, len(results))
+        downlink_mb = n_configured * self.model_payload_mb
+        uplink_mb = upload_clients * self.model_payload_mb
+        round_transmitted_mb = downlink_mb + uplink_mb
+
+        self.total_uplink_mb += uplink_mb
+        self.total_transmitted_mb += round_transmitted_mb
+
         mean_model_drift = drift_sum / drift_clients if drift_clients else ""
 
         self.logger.stage_round_metrics(
@@ -283,6 +284,8 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
                 self.total_c_drift,
                 self.total_gain,
                 self.total_utility,
+                uplink_mb,
+                self.total_uplink_mb,
                 round_transmitted_mb,
                 self.total_transmitted_mb,
                 mean_model_drift,
@@ -299,6 +302,7 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         round_start = self.round_started_at.pop(server_round, now)
         round_time_s = now - round_start
         wall_time_s = now - self.start_time
+
         self.logger.commit_round_metrics(
             round_num=server_round,
             val_loss=agg_loss,

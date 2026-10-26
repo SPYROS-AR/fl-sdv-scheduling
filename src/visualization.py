@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-
 META_CONFIG = {
     "dynamic": {
         "label": "Dynamic FedAvg",
@@ -58,9 +57,18 @@ META_CONFIG = {
 }
 
 ALPHA_METADATA = {
-    "a01": {"title": r"$\alpha_{\mathrm{Dir}} = 0.1$ (Extreme Non-IID)", "label": r"$\alpha = 0.1$"},
-    "a03": {"title": r"$\alpha_{\mathrm{Dir}} = 0.3$ (Moderate Non-IID)", "label": r"$\alpha = 0.3$"},
-    "a05": {"title": r"$\alpha_{\mathrm{Dir}} = 0.5$ (Mild Non-IID)", "label": r"$\alpha = 0.5$"},
+    "a01": {
+        "title": r"$\alpha_{\mathrm{Dir}} = 0.1$ (Extreme Non-IID)",
+        "label": r"$\alpha = 0.1$",
+    },
+    "a03": {
+        "title": r"$\alpha_{\mathrm{Dir}} = 0.3$ (Moderate Non-IID)",
+        "label": r"$\alpha = 0.3$",
+    },
+    "a05": {
+        "title": r"$\alpha_{\mathrm{Dir}} = 0.5$ (Mild Non-IID)",
+        "label": r"$\alpha = 0.5$",
+    },
 }
 
 
@@ -111,29 +119,27 @@ def _style_for(exp_name: str) -> dict:
 def repair_dataframe_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Synthesize legacy columns if missing so older experiment runs can be visualized."""
     df = df.copy()
-
-    # Cumulative compute interference
     if "total_c_comp" not in df.columns and "c_comp" in df.columns:
-        df["total_c_comp"] = pd.to_numeric(df["c_comp"], errors="coerce").fillna(0.0).cumsum()
-
-    # Parameter drift mean
+        df["total_c_comp"] = (
+            pd.to_numeric(df["c_comp"], errors="coerce").fillna(0.0).cumsum()
+        )
     if "mean_model_drift" not in df.columns and "c_drift" in df.columns:
-        syncs = pd.to_numeric(df.get("syncs", 1), errors="coerce").fillna(1).replace(0, 1)
+        syncs = (
+            pd.to_numeric(df.get("syncs", 1), errors="coerce").fillna(1).replace(0, 1)
+        )
         df["mean_model_drift"] = pd.to_numeric(df["c_drift"], errors="coerce") / syncs
-
-    # Cumulative network transmitted payload in MB
     if "total_transmitted_mb" not in df.columns:
         if "transmitted_mb" in df.columns:
             df["total_transmitted_mb"] = (
-                pd.to_numeric(df["transmitted_mb"], errors="coerce").fillna(0.0).cumsum()
+                pd.to_numeric(df["transmitted_mb"], errors="coerce")
+                .fillna(0.0)
+                .cumsum()
             )
         elif "syncs" in df.columns and "round" in df.columns:
-            # ResNet-9 FP32 footprint is ~9.31 MB per transfer
             round_mb = (10 * 9.31) + (
                 pd.to_numeric(df["syncs"], errors="coerce").fillna(0.0) * 9.31
             )
             df["total_transmitted_mb"] = round_mb.cumsum()
-
     return df
 
 
@@ -166,7 +172,6 @@ def discover_job_ids(search_dirs: list[Path]) -> list[str]:
                 if prefix in known_prefixes:
                     job_ids.add(suffix)
                     break
-
     order = {"a01": 1, "a03": 2, "a05": 3}
     return sorted(job_ids, key=lambda x: (order.get(x, 99), x))
 
@@ -177,7 +182,6 @@ def load_metrics_data(job_id: str = "") -> dict[str, pd.DataFrame]:
     search_dirs = [Path("."), Path("final_metrics")]
     pattern = f"metrics_*_{job_id}.csv" if job_id else "metrics_*.csv"
     found_paths = {}
-
     for directory in search_dirs:
         if not directory.exists():
             continue
@@ -191,7 +195,6 @@ def load_metrics_data(job_id: str = "") -> dict[str, pd.DataFrame]:
                     continue
                 exp_name = exp_name[: -(len(job_id) + 1)]
             else:
-                # If no job_id specified, ignore suffixed files here (they are handled by discovery)
                 if any(exp_name.endswith(f"_{jid}") for jid in ["a01", "a03", "a05"]):
                     continue
             found_paths[path.name] = (exp_name, path)
@@ -203,7 +206,6 @@ def load_metrics_data(job_id: str = "") -> dict[str, pd.DataFrame]:
             print(f"Loaded: {path}")
         except (OSError, pd.errors.ParserError) as exc:
             print(f"Warning: could not read {path}: {exc}")
-
     return loaded_data
 
 
@@ -218,7 +220,7 @@ def plot_required_metrics(
             "filename": "fig1_accuracy_vs_transmitted_data.pdf",
             "title": "Global Accuracy vs. Total Transmitted Data",
             "xlabel": "Cumulative Transmitted Model Payload (MB)",
-            "ylabel": "Global Validation Accuracy (%)",
+            "ylabel": "Global Test Accuracy (%)",
             "percent": True,
         },
         {
@@ -227,7 +229,7 @@ def plot_required_metrics(
             "filename": "fig2_accuracy_vs_wall_time.pdf",
             "title": "Global Accuracy vs. Wall-Clock Time",
             "xlabel": "Elapsed Wall-Clock Time (seconds)",
-            "ylabel": "Global Validation Accuracy (%)",
+            "ylabel": "Global Test Accuracy (%)",
             "percent": True,
         },
         {
@@ -256,9 +258,12 @@ def plot_required_metrics(
         for exp_name, frame in data.items():
             y_col = spec["y"]
             if y_col == "global_accuracy" and "centralized_accuracy" in frame.columns:
-                if pd.to_numeric(frame["centralized_accuracy"], errors="coerce").notna().any():
+                if (
+                    pd.to_numeric(frame["centralized_accuracy"], errors="coerce")
+                    .notna()
+                    .any()
+                ):
                     y_col = "centralized_accuracy"
-
             if spec["x"] not in frame.columns or y_col not in frame.columns:
                 print(
                     f"Skipping {exp_name} for {spec['filename']}: required column '{y_col}' or '{spec['x']}' missing"
@@ -270,10 +275,7 @@ def plot_required_metrics(
             series = series.dropna().sort_values(spec["x"])
             if series.empty:
                 continue
-
-            y_values = (
-                series[y_col] * 100.0 if spec["percent"] else series[y_col]
-            )
+            y_values = series[y_col] * 100.0 if spec["percent"] else series[y_col]
             style = _style_for(exp_name)
             ax.plot(
                 series[spec["x"]],
@@ -283,7 +285,11 @@ def plot_required_metrics(
             )
             plotted += 1
 
-        title_suffix = f" ({ALPHA_METADATA[job_id]['title']})" if job_id in ALPHA_METADATA else (f" ({job_id})" if job_id else "")
+        title_suffix = (
+            f" ({ALPHA_METADATA[job_id]['title']})"
+            if job_id in ALPHA_METADATA
+            else (f" ({job_id})" if job_id else "")
+        )
         ax.set_title(f"{spec['title']}{title_suffix}")
         ax.set_xlabel(spec["xlabel"])
         ax.set_ylabel(spec["ylabel"])
@@ -300,20 +306,16 @@ def plot_required_metrics(
                 va="center",
             )
         fig.tight_layout()
-
         base_name = spec["filename"]
         if job_id:
             p = Path(base_name)
             suffixed_dest = output_dir / f"{p.stem}_{job_id}{p.suffix}"
             fig.savefig(suffixed_dest, dpi=300, bbox_inches="tight")
             print(f"Saved: {suffixed_dest}")
-
-        # If job_id is a01 or empty, also update the main baseline plot
         if not job_id or job_id == "a01":
             main_dest = output_dir / base_name
             fig.savefig(main_dest, dpi=300, bbox_inches="tight")
             print(f"Saved: {main_dest}")
-
         plt.close(fig)
 
 
@@ -336,24 +338,29 @@ def plot_client_state_distribution(
     ]
     present_exps = [e for e in order if e in data]
     present_exps += [e for e in data.keys() if e not in present_exps]
-
     if not present_exps:
         return
 
     labels = []
     syncs, continues, waits, dropped = [], [], [], []
-
     for exp in present_exps:
         df = data[exp]
         labels.append(_style_for(exp)["label"])
-        syncs.append(int(pd.to_numeric(df.get("syncs", 0), errors="coerce").fillna(0).sum()))
-        continues.append(int(pd.to_numeric(df.get("continues", 0), errors="coerce").fillna(0).sum()))
-        waits.append(int(pd.to_numeric(df.get("waits", 0), errors="coerce").fillna(0).sum()))
-        dropped.append(int(pd.to_numeric(df.get("dropped", 0), errors="coerce").fillna(0).sum()))
+        syncs.append(
+            int(pd.to_numeric(df.get("syncs", 0), errors="coerce").fillna(0).sum())
+        )
+        continues.append(
+            int(pd.to_numeric(df.get("continues", 0), errors="coerce").fillna(0).sum())
+        )
+        waits.append(
+            int(pd.to_numeric(df.get("waits", 0), errors="coerce").fillna(0).sum())
+        )
+        dropped.append(
+            int(pd.to_numeric(df.get("dropped", 0), errors="coerce").fillna(0).sum())
+        )
 
     x = np.arange(len(labels))
     width = 0.55
-
     fig, ax = plt.subplots(figsize=(8, 5))
     syncs_arr = np.array(syncs)
     continues_arr = np.array(continues)
@@ -361,12 +368,41 @@ def plot_client_state_distribution(
     dropped_arr = np.array(dropped)
 
     ax.bar(x, syncs_arr, width, label="SYNC (Upload)", color="#2A9D8F")
-    ax.bar(x, continues_arr, width, bottom=syncs_arr, label="CONTINUE (Local Training)", color="#E9C46A")
-    ax.bar(x, waits_arr, width, bottom=syncs_arr + continues_arr, label="WAIT (Idle / Yield Slack)", color="#F4A261")
-    ax.bar(x, dropped_arr, width, bottom=syncs_arr + continues_arr + waits_arr, label="DROPPED (Buffer Limit)", color="#E63946")
+    ax.bar(
+        x,
+        continues_arr,
+        width,
+        bottom=syncs_arr,
+        label="CONTINUE (Local Training)",
+        color="#E9C46A",
+    )
+    ax.bar(
+        x,
+        waits_arr,
+        width,
+        bottom=syncs_arr + continues_arr,
+        label="WAIT (Idle / Yield Slack)",
+        color="#F4A261",
+    )
+    ax.bar(
+        x,
+        dropped_arr,
+        width,
+        bottom=syncs_arr + continues_arr + waits_arr,
+        label="DROPPED (Buffer Limit)",
+        color="#E63946",
+    )
 
-    title_suffix = f" ({ALPHA_METADATA[job_id]['title']})" if job_id in ALPHA_METADATA else (f" ({job_id})" if job_id else "")
-    ax.set_title(f"Distribution of Client Operational States{title_suffix}", fontsize=12, fontweight="bold")
+    title_suffix = (
+        f" ({ALPHA_METADATA[job_id]['title']})"
+        if job_id in ALPHA_METADATA
+        else (f" ({job_id})" if job_id else "")
+    )
+    ax.set_title(
+        f"Distribution of Client Operational States{title_suffix}",
+        fontsize=12,
+        fontweight="bold",
+    )
     ax.set_ylabel("Total Client Occurrences")
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=9)
@@ -379,12 +415,10 @@ def plot_client_state_distribution(
         suffixed_dest = output_dir / f"fig5_client_state_distribution_{job_id}.pdf"
         fig.savefig(suffixed_dest, dpi=300, bbox_inches="tight")
         print(f"Saved: {suffixed_dest}")
-
     if not job_id or job_id == "a01":
         main_dest = output_dir / filename
         fig.savefig(main_dest, dpi=300, bbox_inches="tight")
         print(f"Saved: {main_dest}")
-
     plt.close(fig)
 
 
@@ -395,20 +429,23 @@ def plot_multi_panel_dirichlet(
     target_alphas = [jid for jid in ["a01", "a03", "a05"] if jid in all_jobs_data]
     if len(target_alphas) < 2:
         return
-
     n_cols = len(target_alphas)
 
     # 1. Multi-panel: Accuracy vs Cumulative Transmitted Payload
     fig, axes = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
     if n_cols == 1:
         axes = [axes]
-
     legend_handles = {}
     for idx, jid in enumerate(target_alphas):
         ax = axes[idx]
         data = all_jobs_data[jid]
         for exp_name, frame in data.items():
-            y_col = "centralized_accuracy" if "centralized_accuracy" in frame.columns and frame["centralized_accuracy"].dropna().shape[0] > 0 else "global_accuracy"
+            y_col = (
+                "centralized_accuracy"
+                if "centralized_accuracy" in frame.columns
+                and frame["centralized_accuracy"].dropna().shape[0] > 0
+                else "global_accuracy"
+            )
             x_col = "total_transmitted_mb"
             if x_col not in frame.columns or y_col not in frame.columns:
                 continue
@@ -418,9 +455,8 @@ def plot_multi_panel_dirichlet(
             series = series.dropna().sort_values(x_col)
             if series.empty:
                 continue
-
             style = _style_for(exp_name)
-            line, = ax.plot(
+            (line,) = ax.plot(
                 series[x_col],
                 series[y_col] * 100.0,
                 label=style["label"],
@@ -428,14 +464,12 @@ def plot_multi_panel_dirichlet(
             )
             if style["label"] not in legend_handles:
                 legend_handles[style["label"]] = line
-
         title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
         ax.set_title(title, fontsize=12, fontweight="bold")
         ax.set_xlabel("Cumulative Payload (MB)", fontsize=11)
         if idx == 0:
             ax.set_ylabel("Global Test Accuracy (%)", fontsize=11)
         ax.grid(True, linestyle="--", alpha=0.5)
-
     if legend_handles:
         fig.legend(
             legend_handles.values(),
@@ -445,7 +479,6 @@ def plot_multi_panel_dirichlet(
             ncol=min(len(legend_handles), 4),
             fontsize=10,
         )
-
     fig.tight_layout()
     comparison_pdf = output_dir / "fig1_dirichlet_comparison.pdf"
     fig.savefig(comparison_pdf, dpi=300, bbox_inches="tight")
@@ -456,7 +489,6 @@ def plot_multi_panel_dirichlet(
     fig2, axes2 = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
     if n_cols == 1:
         axes2 = [axes2]
-
     legend_handles2 = {}
     for idx, jid in enumerate(target_alphas):
         ax = axes2[idx]
@@ -472,9 +504,8 @@ def plot_multi_panel_dirichlet(
             series = series.dropna().sort_values(x_col)
             if series.empty:
                 continue
-
             style = _style_for(exp_name)
-            line, = ax.plot(
+            (line,) = ax.plot(
                 series[x_col],
                 series[y_col],
                 label=style["label"],
@@ -482,14 +513,12 @@ def plot_multi_panel_dirichlet(
             )
             if style["label"] not in legend_handles2:
                 legend_handles2[style["label"]] = line
-
         title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
         ax.set_title(title, fontsize=12, fontweight="bold")
         ax.set_xlabel("Communication Round", fontsize=11)
         if idx == 0:
             ax.set_ylabel("Mean Parameter Drift (L2 distance)", fontsize=11)
         ax.grid(True, linestyle="--", alpha=0.5)
-
     if legend_handles2:
         fig2.legend(
             legend_handles2.values(),
@@ -499,7 +528,6 @@ def plot_multi_panel_dirichlet(
             ncol=min(len(legend_handles2), 4),
             fontsize=10,
         )
-
     fig2.tight_layout()
     drift_comparison_pdf = output_dir / "fig4_dirichlet_drift_comparison.pdf"
     fig2.savefig(drift_comparison_pdf, dpi=300, bbox_inches="tight")
@@ -510,7 +538,6 @@ def plot_multi_panel_dirichlet(
     fig3, axes3 = plt.subplots(1, n_cols, figsize=(6.0 * n_cols, 4.8), sharey=True)
     if n_cols == 1:
         axes3 = [axes3]
-
     order = [
         "fixed_1",
         "fixed_3",
@@ -524,34 +551,70 @@ def plot_multi_panel_dirichlet(
         "dynamic",
         "dynamic_fedprox",
     ]
-
     p_handles = []
     for idx, jid in enumerate(target_alphas):
         ax = axes3[idx]
         data = all_jobs_data[jid]
         present_exps = [e for e in order if e in data]
         present_exps += [e for e in data.keys() if e not in present_exps]
-
         labels = [_style_for(e)["label"] for e in present_exps]
-        syncs = [int(pd.to_numeric(data[e].get("syncs", 0), errors="coerce").fillna(0).sum()) for e in present_exps]
-        continues = [int(pd.to_numeric(data[e].get("continues", 0), errors="coerce").fillna(0).sum()) for e in present_exps]
-        waits = [int(pd.to_numeric(data[e].get("waits", 0), errors="coerce").fillna(0).sum()) for e in present_exps]
-        dropped = [int(pd.to_numeric(data[e].get("dropped", 0), errors="coerce").fillna(0).sum()) for e in present_exps]
-
+        syncs = [
+            int(pd.to_numeric(data[e].get("syncs", 0), errors="coerce").fillna(0).sum())
+            for e in present_exps
+        ]
+        continues = [
+            int(
+                pd.to_numeric(data[e].get("continues", 0), errors="coerce")
+                .fillna(0)
+                .sum()
+            )
+            for e in present_exps
+        ]
+        waits = [
+            int(pd.to_numeric(data[e].get("waits", 0), errors="coerce").fillna(0).sum())
+            for e in present_exps
+        ]
+        dropped = [
+            int(
+                pd.to_numeric(data[e].get("dropped", 0), errors="coerce")
+                .fillna(0)
+                .sum()
+            )
+            for e in present_exps
+        ]
         x = np.arange(len(labels))
         width = 0.55
         syncs_arr = np.array(syncs)
         continues_arr = np.array(continues)
         waits_arr = np.array(waits)
         dropped_arr = np.array(dropped)
-
         p1 = ax.bar(x, syncs_arr, width, label="SYNC (Upload)", color="#2A9D8F")
-        p2 = ax.bar(x, continues_arr, width, bottom=syncs_arr, label="CONTINUE (Local Training)", color="#E9C46A")
-        p3 = ax.bar(x, waits_arr, width, bottom=syncs_arr + continues_arr, label="WAIT (Idle)", color="#F4A261")
-        p4 = ax.bar(x, dropped_arr, width, bottom=syncs_arr + continues_arr + waits_arr, label="DROPPED (Buffer Limit)", color="#E63946")
+        p2 = ax.bar(
+            x,
+            continues_arr,
+            width,
+            bottom=syncs_arr,
+            label="CONTINUE (Local Training)",
+            color="#E9C46A",
+        )
+        p3 = ax.bar(
+            x,
+            waits_arr,
+            width,
+            bottom=syncs_arr + continues_arr,
+            label="WAIT (Idle)",
+            color="#F4A261",
+        )
+        p4 = ax.bar(
+            x,
+            dropped_arr,
+            width,
+            bottom=syncs_arr + continues_arr + waits_arr,
+            label="DROPPED (Buffer Limit)",
+            color="#E63946",
+        )
         if not p_handles:
             p_handles = [p1, p2, p3, p4]
-
         title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
         ax.set_title(title, fontsize=12, fontweight="bold")
         if idx == 0:
@@ -559,10 +622,14 @@ def plot_multi_panel_dirichlet(
         ax.set_xticks(x)
         ax.set_xticklabels(labels, rotation=35, ha="right", fontsize=8.5)
         ax.grid(True, linestyle="--", alpha=0.5, axis="y")
-
     fig3.legend(
         p_handles,
-        ["SYNC (Upload)", "CONTINUE (Train Locally)", "WAIT (Idle / Yield Slack)", "DROPPED (Network Limit)"],
+        [
+            "SYNC (Upload)",
+            "CONTINUE (Train Locally)",
+            "WAIT (Idle / Yield Slack)",
+            "DROPPED (Network Limit)",
+        ],
         loc="upper center",
         bbox_to_anchor=(0.5, 1.06),
         ncol=4,
@@ -580,9 +647,7 @@ def main(job_id: str = ""):
     output_dir = Path("plots")
     output_dir.mkdir(exist_ok=True)
     search_dirs = [Path("."), Path("final_metrics")]
-
     if job_id:
-        # User explicitly requested a single specific job_id (e.g. --job-id a01)
         data = load_metrics_data(job_id)
         if not data:
             print(f"No metrics files found matching job-id '{job_id}'.")
@@ -590,10 +655,8 @@ def main(job_id: str = ""):
         plot_required_metrics(data, output_dir, job_id=job_id)
         plot_client_state_distribution(data, output_dir, job_id=job_id)
     else:
-        # Auto-discovery mode: scan for all alpha jobs (a01, a03, a05, etc.)
         discovered_job_ids = discover_job_ids(search_dirs)
         all_jobs_data = {}
-
         if discovered_job_ids:
             print(f"Discovered job groups: {discovered_job_ids}")
             for jid in discovered_job_ids:
@@ -603,13 +666,12 @@ def main(job_id: str = ""):
                     all_jobs_data[jid] = job_data
                     plot_required_metrics(job_data, output_dir, job_id=jid)
                     plot_client_state_distribution(job_data, output_dir, job_id=jid)
-
-            # Generate multi-panel cross-alpha comparison figures if multiple alphas are present
             if len(all_jobs_data) >= 2:
-                print("\n--- Generating Multi-Panel Dirichlet Alpha Comparison Figures ---")
+                print(
+                    "\n--- Generating Multi-Panel Dirichlet Alpha Comparison Figures ---"
+                )
                 plot_multi_panel_dirichlet(all_jobs_data, output_dir)
         else:
-            # Fallback to unsuffixed legacy metrics
             print("No suffixed metrics found. Loading default unsuffixed metrics...")
             data = load_metrics_data()
             if not data:
@@ -617,7 +679,6 @@ def main(job_id: str = ""):
                 return
             plot_required_metrics(data, output_dir)
             plot_client_state_distribution(data, output_dir)
-
     print(f"\nEvaluation figures saved in {output_dir.resolve()}")
 
 
