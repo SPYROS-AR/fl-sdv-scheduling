@@ -69,6 +69,18 @@ ALPHA_METADATA = {
         "title": r"$\alpha_{\mathrm{Dir}} = 0.5$ (Mild Non-IID)",
         "label": r"$\alpha = 0.5$",
     },
+    "gtsrb_a01": {
+        "title": r"GTSRB $\alpha_{\mathrm{Dir}} = 0.1$ (Extreme Non-IID)",
+        "label": r"GTSRB $\alpha = 0.1$",
+    },
+    "gtsrb_a03": {
+        "title": r"GTSRB $\alpha_{\mathrm{Dir}} = 0.3$ (Moderate Non-IID)",
+        "label": r"GTSRB $\alpha = 0.3$",
+    },
+    "gtsrb_a05": {
+        "title": r"GTSRB $\alpha_{\mathrm{Dir}} = 0.5$ (Mild Non-IID)",
+        "label": r"GTSRB $\alpha = 0.5$",
+    },
 }
 
 
@@ -172,7 +184,14 @@ def discover_job_ids(search_dirs: list[Path]) -> list[str]:
                 if prefix in known_prefixes:
                     job_ids.add(suffix)
                     break
-    order = {"a01": 1, "a03": 2, "a05": 3}
+    order = {
+        "a01": 1,
+        "a03": 2,
+        "a05": 3,
+        "gtsrb_a01": 4,
+        "gtsrb_a03": 5,
+        "gtsrb_a05": 6,
+    }
     return sorted(job_ids, key=lambda x: (order.get(x, 99), x))
 
 
@@ -195,7 +214,10 @@ def load_metrics_data(job_id: str = "") -> dict[str, pd.DataFrame]:
                     continue
                 exp_name = exp_name[: -(len(job_id) + 1)]
             else:
-                if any(exp_name.endswith(f"_{jid}") for jid in ["a01", "a03", "a05"]):
+                if any(
+                    exp_name.endswith(f"_{jid}")
+                    for jid in ["a01", "a03", "a05", "gtsrb_a01", "gtsrb_a03", "gtsrb_a05"]
+                ):
                     continue
             found_paths[path.name] = (exp_name, path)
 
@@ -425,221 +447,236 @@ def plot_client_state_distribution(
 def plot_multi_panel_dirichlet(
     all_jobs_data: dict[str, dict[str, pd.DataFrame]], output_dir: Path
 ):
-    """Generate 1x3 side-by-side subplot figures across Dirichlet alphas (0.1, 0.3, 0.5)."""
-    target_alphas = [jid for jid in ["a01", "a03", "a05"] if jid in all_jobs_data]
-    if len(target_alphas) < 2:
-        return
-    n_cols = len(target_alphas)
-
-    # 1. Multi-panel: Accuracy vs Cumulative Transmitted Payload
-    fig, axes = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
-    if n_cols == 1:
-        axes = [axes]
-    legend_handles = {}
-    for idx, jid in enumerate(target_alphas):
-        ax = axes[idx]
-        data = all_jobs_data[jid]
-        for exp_name, frame in data.items():
-            y_col = (
-                "centralized_accuracy"
-                if "centralized_accuracy" in frame.columns
-                and frame["centralized_accuracy"].dropna().shape[0] > 0
-                else "global_accuracy"
-            )
-            x_col = "total_transmitted_mb"
-            if x_col not in frame.columns or y_col not in frame.columns:
-                continue
-            series = frame[[x_col, y_col]].copy()
-            series[x_col] = pd.to_numeric(series[x_col], errors="coerce")
-            series[y_col] = pd.to_numeric(series[y_col], errors="coerce")
-            series = series.dropna().sort_values(x_col)
-            if series.empty:
-                continue
-            style = _style_for(exp_name)
-            (line,) = ax.plot(
-                series[x_col],
-                series[y_col] * 100.0,
-                label=style["label"],
-                **{k: v for k, v in style.items() if k != "label"},
-            )
-            if style["label"] not in legend_handles:
-                legend_handles[style["label"]] = line
-        title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
-        ax.set_title(title, fontsize=12, fontweight="bold")
-        ax.set_xlabel("Cumulative Payload (MB)", fontsize=11)
-        if idx == 0:
-            ax.set_ylabel("Global Test Accuracy (%)", fontsize=11)
-        ax.grid(True, linestyle="--", alpha=0.5)
-    if legend_handles:
-        fig.legend(
-            legend_handles.values(),
-            legend_handles.keys(),
-            loc="upper center",
-            bbox_to_anchor=(0.5, 1.06),
-            ncol=min(len(legend_handles), 4),
-            fontsize=10,
-        )
-    fig.tight_layout()
-    comparison_pdf = output_dir / "fig1_dirichlet_comparison.pdf"
-    fig.savefig(comparison_pdf, dpi=300, bbox_inches="tight")
-    print(f"Saved multi-panel comparison: {comparison_pdf}")
-    plt.close(fig)
-
-    # 2. Multi-panel: Model Drift vs Round
-    fig2, axes2 = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
-    if n_cols == 1:
-        axes2 = [axes2]
-    legend_handles2 = {}
-    for idx, jid in enumerate(target_alphas):
-        ax = axes2[idx]
-        data = all_jobs_data[jid]
-        for exp_name, frame in data.items():
-            y_col = "mean_model_drift"
-            x_col = "round"
-            if x_col not in frame.columns or y_col not in frame.columns:
-                continue
-            series = frame[[x_col, y_col]].copy()
-            series[x_col] = pd.to_numeric(series[x_col], errors="coerce")
-            series[y_col] = pd.to_numeric(series[y_col], errors="coerce")
-            series = series.dropna().sort_values(x_col)
-            if series.empty:
-                continue
-            style = _style_for(exp_name)
-            (line,) = ax.plot(
-                series[x_col],
-                series[y_col],
-                label=style["label"],
-                **{k: v for k, v in style.items() if k != "label"},
-            )
-            if style["label"] not in legend_handles2:
-                legend_handles2[style["label"]] = line
-        title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
-        ax.set_title(title, fontsize=12, fontweight="bold")
-        ax.set_xlabel("Communication Round", fontsize=11)
-        if idx == 0:
-            ax.set_ylabel("Mean Parameter Drift (L2 distance)", fontsize=11)
-        ax.grid(True, linestyle="--", alpha=0.5)
-    if legend_handles2:
-        fig2.legend(
-            legend_handles2.values(),
-            legend_handles2.keys(),
-            loc="upper center",
-            bbox_to_anchor=(0.5, 1.06),
-            ncol=min(len(legend_handles2), 4),
-            fontsize=10,
-        )
-    fig2.tight_layout()
-    drift_comparison_pdf = output_dir / "fig4_dirichlet_drift_comparison.pdf"
-    fig2.savefig(drift_comparison_pdf, dpi=300, bbox_inches="tight")
-    print(f"Saved multi-panel drift comparison: {drift_comparison_pdf}")
-    plt.close(fig2)
-
-    # 3. Multi-panel: Client Operational State Distribution (Stacked Bars)
-    fig3, axes3 = plt.subplots(1, n_cols, figsize=(6.0 * n_cols, 4.8), sharey=True)
-    if n_cols == 1:
-        axes3 = [axes3]
-    order = [
-        "fixed_1",
-        "fixed_3",
-        "fixed_5",
-        "fixed_10",
-        "fixed_20",
-        "fedprox_1",
-        "fedprox_3",
-        "fedprox_5",
-        "fedprox_10",
-        "dynamic",
-        "dynamic_fedprox",
+    """Generate 1x3 side-by-side subplot figures across Dirichlet alphas (0.1, 0.3, 0.5) for CIFAR-10 and GTSRB."""
+    suites = [
+        (
+            [jid for jid in ["a01", "a03", "a05"] if jid in all_jobs_data],
+            "fig1_dirichlet_comparison.pdf",
+            "fig4_dirichlet_drift_comparison.pdf",
+            "fig5_client_state_distribution_comparison.pdf",
+        ),
+        (
+            [jid for jid in ["gtsrb_a01", "gtsrb_a03", "gtsrb_a05"] if jid in all_jobs_data],
+            "fig1_gtsrb_dirichlet_comparison.pdf",
+            "fig4_gtsrb_dirichlet_drift_comparison.pdf",
+            "fig5_gtsrb_client_state_distribution_comparison.pdf",
+        ),
     ]
-    p_handles = []
-    for idx, jid in enumerate(target_alphas):
-        ax = axes3[idx]
-        data = all_jobs_data[jid]
-        present_exps = [e for e in order if e in data]
-        present_exps += [e for e in data.keys() if e not in present_exps]
-        labels = [_style_for(e)["label"] for e in present_exps]
-        syncs = [
-            int(pd.to_numeric(data[e].get("syncs", 0), errors="coerce").fillna(0).sum())
-            for e in present_exps
-        ]
-        continues = [
-            int(
-                pd.to_numeric(data[e].get("continues", 0), errors="coerce")
-                .fillna(0)
-                .sum()
+
+    for target_alphas, fig1_name, fig4_name, fig5_name in suites:
+        if len(target_alphas) < 2:
+            continue
+        n_cols = len(target_alphas)
+
+        # 1. Multi-panel: Accuracy vs Cumulative Transmitted Payload
+        fig, axes = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
+        if n_cols == 1:
+            axes = [axes]
+        legend_handles = {}
+        for idx, jid in enumerate(target_alphas):
+            ax = axes[idx]
+            data = all_jobs_data[jid]
+            for exp_name, frame in data.items():
+                y_col = (
+                    "centralized_accuracy"
+                    if "centralized_accuracy" in frame.columns
+                    and frame["centralized_accuracy"].dropna().shape[0] > 0
+                    else "global_accuracy"
+                )
+                x_col = "total_transmitted_mb"
+                if x_col not in frame.columns or y_col not in frame.columns:
+                    continue
+                series = frame[[x_col, y_col]].copy()
+                series[x_col] = pd.to_numeric(series[x_col], errors="coerce")
+                series[y_col] = pd.to_numeric(series[y_col], errors="coerce")
+                series = series.dropna().sort_values(x_col)
+                if series.empty:
+                    continue
+                style = _style_for(exp_name)
+                (line,) = ax.plot(
+                    series[x_col],
+                    series[y_col] * 100.0,
+                    label=style["label"],
+                    **{k: v for k, v in style.items() if k != "label"},
+                )
+                if style["label"] not in legend_handles:
+                    legend_handles[style["label"]] = line
+            title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
+            ax.set_title(title, fontsize=12, fontweight="bold")
+            ax.set_xlabel("Cumulative Payload (MB)", fontsize=11)
+            if idx == 0:
+                ax.set_ylabel("Global Test Accuracy (%)", fontsize=11)
+            ax.grid(True, linestyle="--", alpha=0.5)
+        if legend_handles:
+            fig.legend(
+                legend_handles.values(),
+                legend_handles.keys(),
+                loc="upper center",
+                bbox_to_anchor=(0.5, 1.06),
+                ncol=min(len(legend_handles), 4),
+                fontsize=10,
             )
-            for e in present_exps
-        ]
-        waits = [
-            int(pd.to_numeric(data[e].get("waits", 0), errors="coerce").fillna(0).sum())
-            for e in present_exps
-        ]
-        dropped = [
-            int(
-                pd.to_numeric(data[e].get("dropped", 0), errors="coerce")
-                .fillna(0)
-                .sum()
+        fig.tight_layout()
+        comparison_pdf = output_dir / fig1_name
+        fig.savefig(comparison_pdf, dpi=300, bbox_inches="tight")
+        print(f"Saved multi-panel comparison: {comparison_pdf}")
+        plt.close(fig)
+
+        # 2. Multi-panel: Model Drift vs Round
+        fig2, axes2 = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
+        if n_cols == 1:
+            axes2 = [axes2]
+        legend_handles2 = {}
+        for idx, jid in enumerate(target_alphas):
+            ax = axes2[idx]
+            data = all_jobs_data[jid]
+            for exp_name, frame in data.items():
+                y_col = "mean_model_drift"
+                x_col = "round"
+                if x_col not in frame.columns or y_col not in frame.columns:
+                    continue
+                series = frame[[x_col, y_col]].copy()
+                series[x_col] = pd.to_numeric(series[x_col], errors="coerce")
+                series[y_col] = pd.to_numeric(series[y_col], errors="coerce")
+                series = series.dropna().sort_values(x_col)
+                if series.empty:
+                    continue
+                style = _style_for(exp_name)
+                (line,) = ax.plot(
+                    series[x_col],
+                    series[y_col],
+                    label=style["label"],
+                    **{k: v for k, v in style.items() if k != "label"},
+                )
+                if style["label"] not in legend_handles2:
+                    legend_handles2[style["label"]] = line
+            title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
+            ax.set_title(title, fontsize=12, fontweight="bold")
+            ax.set_xlabel("Communication Round", fontsize=11)
+            if idx == 0:
+                ax.set_ylabel("Mean Parameter Drift (L2 distance)", fontsize=11)
+            ax.grid(True, linestyle="--", alpha=0.5)
+        if legend_handles2:
+            fig2.legend(
+                legend_handles2.values(),
+                legend_handles2.keys(),
+                loc="upper center",
+                bbox_to_anchor=(0.5, 1.06),
+                ncol=min(len(legend_handles2), 4),
+                fontsize=10,
             )
-            for e in present_exps
+        fig2.tight_layout()
+        drift_comparison_pdf = output_dir / fig4_name
+        fig2.savefig(drift_comparison_pdf, dpi=300, bbox_inches="tight")
+        print(f"Saved multi-panel drift comparison: {drift_comparison_pdf}")
+        plt.close(fig2)
+
+        # 3. Multi-panel: Client Operational State Distribution (Stacked Bars)
+        fig3, axes3 = plt.subplots(1, n_cols, figsize=(6.0 * n_cols, 4.8), sharey=True)
+        if n_cols == 1:
+            axes3 = [axes3]
+        order = [
+            "fixed_1",
+            "fixed_3",
+            "fixed_5",
+            "fixed_10",
+            "fixed_20",
+            "fedprox_1",
+            "fedprox_3",
+            "fedprox_5",
+            "fedprox_10",
+            "dynamic",
+            "dynamic_fedprox",
         ]
-        x = np.arange(len(labels))
-        width = 0.55
-        syncs_arr = np.array(syncs)
-        continues_arr = np.array(continues)
-        waits_arr = np.array(waits)
-        dropped_arr = np.array(dropped)
-        p1 = ax.bar(x, syncs_arr, width, label="SYNC (Upload)", color="#2A9D8F")
-        p2 = ax.bar(
-            x,
-            continues_arr,
-            width,
-            bottom=syncs_arr,
-            label="CONTINUE (Local Training)",
-            color="#E9C46A",
+        p_handles = []
+        for idx, jid in enumerate(target_alphas):
+            ax = axes3[idx]
+            data = all_jobs_data[jid]
+            present_exps = [e for e in order if e in data]
+            present_exps += [e for e in data.keys() if e not in present_exps]
+            labels = [_style_for(e)["label"] for e in present_exps]
+            syncs = [
+                int(pd.to_numeric(data[e].get("syncs", 0), errors="coerce").fillna(0).sum())
+                for e in present_exps
+            ]
+            continues = [
+                int(
+                    pd.to_numeric(data[e].get("continues", 0), errors="coerce")
+                    .fillna(0)
+                    .sum()
+                )
+                for e in present_exps
+            ]
+            waits = [
+                int(pd.to_numeric(data[e].get("waits", 0), errors="coerce").fillna(0).sum())
+                for e in present_exps
+            ]
+            dropped = [
+                int(
+                    pd.to_numeric(data[e].get("dropped", 0), errors="coerce")
+                    .fillna(0)
+                    .sum()
+                )
+                for e in present_exps
+            ]
+            x = np.arange(len(labels))
+            width = 0.55
+            syncs_arr = np.array(syncs)
+            continues_arr = np.array(continues)
+            waits_arr = np.array(waits)
+            dropped_arr = np.array(dropped)
+            p1 = ax.bar(x, syncs_arr, width, label="SYNC (Upload)", color="#2A9D8F")
+            p2 = ax.bar(
+                x,
+                continues_arr,
+                width,
+                bottom=syncs_arr,
+                label="CONTINUE (Local Training)",
+                color="#E9C46A",
+            )
+            p3 = ax.bar(
+                x,
+                waits_arr,
+                width,
+                bottom=syncs_arr + continues_arr,
+                label="WAIT (Idle)",
+                color="#F4A261",
+            )
+            p4 = ax.bar(
+                x,
+                dropped_arr,
+                width,
+                bottom=syncs_arr + continues_arr + waits_arr,
+                label="DROPPED (Buffer Limit)",
+                color="#E63946",
+            )
+            if not p_handles:
+                p_handles = [p1, p2, p3, p4]
+            title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
+            ax.set_title(title, fontsize=12, fontweight="bold")
+            if idx == 0:
+                ax.set_ylabel("Total Client Occurrences", fontsize=11)
+            ax.set_xticks(x)
+            ax.set_xticklabels(labels, rotation=35, ha="right", fontsize=8.5)
+            ax.grid(True, linestyle="--", alpha=0.5, axis="y")
+        fig3.legend(
+            p_handles,
+            [
+                "SYNC (Upload)",
+                "CONTINUE (Train Locally)",
+                "WAIT (Idle / Yield Slack)",
+                "DROPPED (Network Limit)",
+            ],
+            loc="upper center",
+            bbox_to_anchor=(0.5, 1.06),
+            ncol=4,
+            fontsize=10,
         )
-        p3 = ax.bar(
-            x,
-            waits_arr,
-            width,
-            bottom=syncs_arr + continues_arr,
-            label="WAIT (Idle)",
-            color="#F4A261",
-        )
-        p4 = ax.bar(
-            x,
-            dropped_arr,
-            width,
-            bottom=syncs_arr + continues_arr + waits_arr,
-            label="DROPPED (Buffer Limit)",
-            color="#E63946",
-        )
-        if not p_handles:
-            p_handles = [p1, p2, p3, p4]
-        title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
-        ax.set_title(title, fontsize=12, fontweight="bold")
-        if idx == 0:
-            ax.set_ylabel("Total Client Occurrences", fontsize=11)
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, rotation=35, ha="right", fontsize=8.5)
-        ax.grid(True, linestyle="--", alpha=0.5, axis="y")
-    fig3.legend(
-        p_handles,
-        [
-            "SYNC (Upload)",
-            "CONTINUE (Train Locally)",
-            "WAIT (Idle / Yield Slack)",
-            "DROPPED (Network Limit)",
-        ],
-        loc="upper center",
-        bbox_to_anchor=(0.5, 1.06),
-        ncol=4,
-        fontsize=10,
-    )
-    fig3.tight_layout()
-    states_comparison_pdf = output_dir / "fig5_client_state_distribution_comparison.pdf"
-    fig3.savefig(states_comparison_pdf, dpi=300, bbox_inches="tight")
-    print(f"Saved multi-panel state distribution: {states_comparison_pdf}")
-    plt.close(fig3)
+        fig3.tight_layout()
+        states_comparison_pdf = output_dir / fig5_name
+        fig3.savefig(states_comparison_pdf, dpi=300, bbox_inches="tight")
+        print(f"Saved multi-panel state distribution: {states_comparison_pdf}")
+        plt.close(fig3)
 
 
 def main(job_id: str = ""):
