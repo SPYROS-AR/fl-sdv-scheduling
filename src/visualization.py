@@ -152,6 +152,15 @@ def repair_dataframe_columns(df: pd.DataFrame) -> pd.DataFrame:
                 pd.to_numeric(df["syncs"], errors="coerce").fillna(0.0) * 9.31
             )
             df["total_transmitted_mb"] = round_mb.cumsum()
+    if "total_uplink_mb" not in df.columns:
+        if "uplink_mb" in df.columns:
+            df["total_uplink_mb"] = (
+                pd.to_numeric(df["uplink_mb"], errors="coerce").fillna(0.0).cumsum()
+            )
+        elif "syncs" in df.columns:
+            df["total_uplink_mb"] = (
+                pd.to_numeric(df["syncs"], errors="coerce").fillna(0.0) * 9.31
+            ).cumsum()
     return df
 
 
@@ -246,6 +255,15 @@ def plot_required_metrics(
             "percent": True,
         },
         {
+            "x": "total_uplink_mb",
+            "y": "global_accuracy",
+            "filename": "fig1b_accuracy_vs_uplink_data.pdf",
+            "title": "Global Accuracy vs. Uplink Transmitted Data",
+            "xlabel": "Cumulative Uplink Model Payload (MB)",
+            "ylabel": "Global Test Accuracy (%)",
+            "percent": True,
+        },
+        {
             "x": "wall_time_s",
             "y": "global_accuracy",
             "filename": "fig2_accuracy_vs_wall_time.pdf",
@@ -270,6 +288,15 @@ def plot_required_metrics(
             "title": "Mean Local-to-Global Model Drift",
             "xlabel": "Communication Round",
             "ylabel": "Mean Parameter Divergence (L2 distance)",
+            "percent": False,
+        },
+        {
+            "x": "round",
+            "y": "total_utility",
+            "filename": "fig6_cumulative_utility.pdf",
+            "title": "Cumulative System Utility",
+            "xlabel": "Communication Round",
+            "ylabel": "Cumulative System Utility",
             "percent": False,
         },
     ]
@@ -522,7 +549,162 @@ def plot_multi_panel_dirichlet(
         print(f"Saved multi-panel comparison: {comparison_pdf}")
         plt.close(fig)
 
-        # 2. Multi-panel: Model Drift vs Round
+        # 2. Multi-panel: Accuracy vs Cumulative Uplink Payload (Pure Uplink)
+        fig_up, axes_up = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
+        if n_cols == 1:
+            axes_up = [axes_up]
+        legend_handles_up = {}
+        for idx, jid in enumerate(target_alphas):
+            ax = axes_up[idx]
+            data = all_jobs_data[jid]
+            for exp_name, frame in data.items():
+                y_col = (
+                    "centralized_accuracy"
+                    if "centralized_accuracy" in frame.columns
+                    and frame["centralized_accuracy"].dropna().shape[0] > 0
+                    else "global_accuracy"
+                )
+                x_col = "total_uplink_mb"
+                if x_col not in frame.columns or y_col not in frame.columns:
+                    continue
+                series = frame[[x_col, y_col]].copy()
+                series[x_col] = pd.to_numeric(series[x_col], errors="coerce")
+                series[y_col] = pd.to_numeric(series[y_col], errors="coerce")
+                series = series.dropna().sort_values(x_col)
+                if series.empty:
+                    continue
+                style = _style_for(exp_name)
+                (line,) = ax.plot(
+                    series[x_col],
+                    series[y_col] * 100.0,
+                    label=style["label"],
+                    **{k: v for k, v in style.items() if k != "label"},
+                )
+                if style["label"] not in legend_handles_up:
+                    legend_handles_up[style["label"]] = line
+            title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
+            ax.set_title(title, fontsize=12, fontweight="bold")
+            ax.set_xlabel("Cumulative Uplink Payload (MB)", fontsize=11)
+            if idx == 0:
+                ax.set_ylabel("Global Test Accuracy (%)", fontsize=11)
+            ax.grid(True, linestyle="--", alpha=0.5)
+        if legend_handles_up:
+            fig_up.legend(
+                legend_handles_up.values(),
+                legend_handles_up.keys(),
+                loc="upper center",
+                bbox_to_anchor=(0.5, 1.06),
+                ncol=min(len(legend_handles_up), 4),
+                fontsize=10,
+            )
+        fig_up.tight_layout()
+        uplink_fig_name = fig1_name.replace("fig1_", "fig1b_uplink_")
+        uplink_comparison_pdf = output_dir / uplink_fig_name
+        fig_up.savefig(uplink_comparison_pdf, dpi=300, bbox_inches="tight")
+        print(f"Saved multi-panel uplink comparison: {uplink_comparison_pdf}")
+        plt.close(fig_up)
+
+        # 3. Multi-panel: Cumulative Compute Interference vs Round
+        fig_comp, axes_comp = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
+        if n_cols == 1:
+            axes_comp = [axes_comp]
+        legend_handles_comp = {}
+        for idx, jid in enumerate(target_alphas):
+            ax = axes_comp[idx]
+            data = all_jobs_data[jid]
+            for exp_name, frame in data.items():
+                y_col = "total_c_comp"
+                x_col = "round"
+                if x_col not in frame.columns or y_col not in frame.columns:
+                    continue
+                series = frame[[x_col, y_col]].copy()
+                series[x_col] = pd.to_numeric(series[x_col], errors="coerce")
+                series[y_col] = pd.to_numeric(series[y_col], errors="coerce")
+                series = series.dropna().sort_values(x_col)
+                if series.empty:
+                    continue
+                style = _style_for(exp_name)
+                (line,) = ax.plot(
+                    series[x_col],
+                    series[y_col],
+                    label=style["label"],
+                    **{k: v for k, v in style.items() if k != "label"},
+                )
+                if style["label"] not in legend_handles_comp:
+                    legend_handles_comp[style["label"]] = line
+            title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
+            ax.set_title(title, fontsize=12, fontweight="bold")
+            ax.set_xlabel("Communication Round", fontsize=11)
+            if idx == 0:
+                ax.set_ylabel("Cumulative Compute Interference", fontsize=11)
+            ax.grid(True, linestyle="--", alpha=0.5)
+        if legend_handles_comp:
+            fig_comp.legend(
+                legend_handles_comp.values(),
+                legend_handles_comp.keys(),
+                loc="upper center",
+                bbox_to_anchor=(0.5, 1.06),
+                ncol=min(len(legend_handles_comp), 4),
+                fontsize=10,
+            )
+        fig_comp.tight_layout()
+        compute_fig_name = fig1_name.replace("fig1_", "fig3_compute_")
+        compute_comparison_pdf = output_dir / compute_fig_name
+        fig_comp.savefig(compute_comparison_pdf, dpi=300, bbox_inches="tight")
+        print(f"Saved multi-panel compute comparison: {compute_comparison_pdf}")
+        plt.close(fig_comp)
+
+        # 4. Multi-panel: Cumulative System Utility vs Round
+        fig_ut, axes_ut = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
+        if n_cols == 1:
+            axes_ut = [axes_ut]
+        legend_handles_ut = {}
+        for idx, jid in enumerate(target_alphas):
+            ax = axes_ut[idx]
+            data = all_jobs_data[jid]
+            for exp_name, frame in data.items():
+                y_col = "total_utility"
+                x_col = "round"
+                if x_col not in frame.columns or y_col not in frame.columns:
+                    continue
+                series = frame[[x_col, y_col]].copy()
+                series[x_col] = pd.to_numeric(series[x_col], errors="coerce")
+                series[y_col] = pd.to_numeric(series[y_col], errors="coerce")
+                series = series.dropna().sort_values(x_col)
+                if series.empty:
+                    continue
+                style = _style_for(exp_name)
+                (line,) = ax.plot(
+                    series[x_col],
+                    series[y_col],
+                    label=style["label"],
+                    **{k: v for k, v in style.items() if k != "label"},
+                )
+                if style["label"] not in legend_handles_ut:
+                    legend_handles_ut[style["label"]] = line
+            title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
+            ax.set_title(title, fontsize=12, fontweight="bold")
+            ax.set_xlabel("Communication Round", fontsize=11)
+            if idx == 0:
+                ax.set_ylabel("Cumulative System Utility", fontsize=11)
+            ax.grid(True, linestyle="--", alpha=0.5)
+        if legend_handles_ut:
+            fig_ut.legend(
+                legend_handles_ut.values(),
+                legend_handles_ut.keys(),
+                loc="upper center",
+                bbox_to_anchor=(0.5, 1.06),
+                ncol=min(len(legend_handles_ut), 4),
+                fontsize=10,
+            )
+        fig_ut.tight_layout()
+        utility_fig_name = fig1_name.replace("fig1_", "fig6_utility_")
+        utility_comparison_pdf = output_dir / utility_fig_name
+        fig_ut.savefig(utility_comparison_pdf, dpi=300, bbox_inches="tight")
+        print(f"Saved multi-panel utility comparison: {utility_comparison_pdf}")
+        plt.close(fig_ut)
+
+        # 5. Multi-panel: Model Drift vs Round
         fig2, axes2 = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
         if n_cols == 1:
             axes2 = [axes2]
@@ -679,7 +861,106 @@ def plot_multi_panel_dirichlet(
         plt.close(fig3)
 
 
-def main(job_id: str = ""):
+def export_latex_table(
+    all_jobs_data: dict[str, dict[str, pd.DataFrame]],
+    output_path: Path | None = None,
+) -> str:
+    """Generate and return publication-ready LaTeX Table II code from discovered jobs data."""
+    schemes = [
+        ("fixed_1", r"Fixed FedAvg ($E = 1$)"),
+        ("fixed_5", r"Fixed FedAvg ($E = 5$)"),
+        ("fixed_10", r"Fixed FedAvg ($E = 10$)"),
+        ("fedprox_5", r"Fixed FedProx ($E = 5, \mu = 0.01$)"),
+        ("dynamic", r"\textbf{Dynamic FedAvg (Ours)}"),
+        ("dynamic_fedprox", r"\textbf{Dynamic FedProx (Ours)}"),
+    ]
+
+    lines = [
+        r"\begin{table*}[t]",
+        r"\caption{Comprehensive Benchmark Results Across Non-IID Dirichlet Partitions (250 Communication Rounds)}",
+        r"\label{tab:evaluation_results}",
+        r"\centering",
+        r"\begin{tabular}{lccccccr}",
+        r"\toprule",
+        r"\textbf{Policy / Scheme} & \multicolumn{3}{c}{\textbf{Centralized Test Accuracy (\%)}} & \textbf{Cumulative Uplink} & \textbf{Upload} & \textbf{Compute Contention} & \textbf{Parameter Drift} \\",
+        r" & $\alpha = 0.1$ & $\alpha = 0.3$ & $\alpha = 0.5$ & \textbf{Payload (MB)} & \textbf{Drops} & \textbf{Cost ($\sum c_i U_i^{\text{crit}}$)} & \textbf{Cost ($\sum D_i$, $\alpha=0.1 / 0.5$)} \\",
+        r"\midrule",
+    ]
+
+    for key, name in schemes:
+        accs = []
+        for a in ["a01", "a03", "a05"]:
+            if a in all_jobs_data and key in all_jobs_data[a]:
+                df = all_jobs_data[a][key]
+                y_col = (
+                    "centralized_accuracy"
+                    if "centralized_accuracy" in df.columns
+                    and df["centralized_accuracy"].dropna().shape[0] > 0
+                    else "global_accuracy"
+                )
+                acc = (
+                    pd.to_numeric(df[y_col], errors="coerce").dropna().iloc[-1]
+                    * 100.0
+                )
+                accs.append(f"{acc:.2f}")
+            else:
+                accs.append("-")
+
+        data01 = all_jobs_data.get("a01", {}).get(key)
+        data05 = all_jobs_data.get("a05", {}).get(key)
+
+        if data01 is not None and not data01.empty:
+            last01 = data01.iloc[-1]
+            up_mb = f"{float(last01.get('total_uplink_mb', 0)):,.1f}"
+            drops = f"{int(pd.to_numeric(data01.get('dropped', 0), errors='coerce').fillna(0).sum())}"
+
+            if key in {"dynamic", "dynamic_fedprox"}:
+                comp_vals = []
+                for a in ["a01", "a03", "a05"]:
+                    if a in all_jobs_data and key in all_jobs_data[a]:
+                        comp_vals.append(
+                            float(
+                                all_jobs_data[a][key]
+                                .iloc[-1]
+                                .get("total_c_comp", 0)
+                            )
+                        )
+                if comp_vals:
+                    comp = f"{min(comp_vals):.1f}--{max(comp_vals):.1f}"
+                else:
+                    comp = f"{float(last01.get('total_c_comp', 0)):.1f}"
+            else:
+                comp = f"{float(last01.get('total_c_comp', 0)):.1f}"
+
+            drift01 = f"{float(last01.get('total_c_drift', 0)):,.1f}"
+        else:
+            up_mb = drops = comp = drift01 = "-"
+
+        drift05 = (
+            f"{float(data05.iloc[-1].get('total_c_drift', 0)):,.1f}"
+            if data05 is not None and not data05.empty
+            else "-"
+        )
+        drift_str = f"{drift01} / {drift05}"
+
+        lines.append(
+            f"{name} & {accs[0]} & {accs[1]} & {accs[2]} & {up_mb} & {drops} & {comp} & {drift_str} \\\\"
+        )
+
+    lines.extend([
+        r"\bottomrule",
+        r"\end{tabular}",
+        r"\end{table*}",
+    ])
+
+    latex_code = "\n".join(lines)
+    if output_path:
+        Path(output_path).write_text(latex_code)
+        print(f"Exported LaTeX table to {output_path}")
+    return latex_code
+
+
+def main(job_id: str = "", export_table: bool = False):
     setup_plot_style()
     output_dir = Path("plots")
     output_dir.mkdir(exist_ok=True)
@@ -708,6 +989,10 @@ def main(job_id: str = ""):
                     "\n--- Generating Multi-Panel Dirichlet Alpha Comparison Figures ---"
                 )
                 plot_multi_panel_dirichlet(all_jobs_data, output_dir)
+            if export_table or len(all_jobs_data) >= 2:
+                print("\n--- Generating LaTeX Table II ---")
+                tbl = export_latex_table(all_jobs_data, output_dir / "table2_results.tex")
+                print(tbl)
         else:
             print("No suffixed metrics found. Loading default unsuffixed metrics...")
             data = load_metrics_data()
@@ -729,4 +1014,10 @@ if __name__ == "__main__":
         default="",
         help="Optional run identifier (e.g. 'a01', 'a03', 'a05'). Omit to auto-discover all runs.",
     )
-    main(job_id=parser.parse_args().job_id)
+    parser.add_argument(
+        "--export-table",
+        action="store_true",
+        help="Export LaTeX Table II summarizing benchmark results across alphas.",
+    )
+    args = parser.parse_args()
+    main(job_id=args.job_id, export_table=args.export_table)

@@ -1,0 +1,18 @@
+\begin{table*}[t]
+\caption{Comprehensive Benchmark Results Across Non-IID Dirichlet Partitions (250 Communication Rounds)}
+\label{tab:evaluation_results}
+\centering
+\begin{tabular}{lccccccr}
+\toprule
+\textbf{Policy / Scheme} & \multicolumn{3}{c}{\textbf{Centralized Test Accuracy (\%)}} & \textbf{Cumulative Uplink} & \textbf{Upload} & \textbf{Compute Contention} & \textbf{Parameter Drift} \\
+ & $\alpha = 0.1$ & $\alpha = 0.3$ & $\alpha = 0.5$ & \textbf{Payload (MB)} & \textbf{Drops} & \textbf{Cost ($\sum c_i U_i^{\text{crit}}$)} & \textbf{Cost ($\sum D_i$, $\alpha=0.1 / 0.5$)} \\
+\midrule
+Fixed FedAvg ($E = 1$) & 71.09 & 77.00 & 78.84 & 23,272.2 & 567 & 100.1 & 3,635.2 / 2,977.9 \\
+Fixed FedAvg ($E = 5$) & 72.93 & 77.63 & 78.14 & 23,272.2 & 567 & 500.3 & 4,202.7 / 2,417.8 \\
+Fixed FedAvg ($E = 10$) & 68.87 & 77.50 & 78.26 & 23,272.2 & 567 & 1000.6 & 4,309.7 / 2,474.4 \\
+Fixed FedProx ($E = 5, \mu = 0.01$) & 70.81 & 77.35 & 78.64 & 23,272.2 & 567 & 500.3 & 2,949.2 / 2,056.0 \\
+\textbf{Dynamic FedAvg (Ours)} & 70.29 & 76.51 & 78.21 & 15,238.6 & 95 & 381.6--393.0 & 3,986.0 / 2,773.9 \\
+\textbf{Dynamic FedProx (Ours)} & 72.51 & 76.79 & 78.17 & 15,238.6 & 95 & 373.0--398.5 & 2,541.1 / 2,038.3 \\
+\bottomrule
+\end{tabular}
+\end{table*}
