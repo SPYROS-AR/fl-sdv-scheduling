@@ -123,6 +123,7 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         self.round_started_at = {}
         self.round_n_clients = {}
         self.model_payload_mb = 0.0
+
         self.total_uplink_mb = 0.0
         self.total_transmitted_mb = 0.0
         self.total_c_net = self.total_c_comp = self.total_c_drift = 0.0
@@ -193,7 +194,6 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         drift_sum = 0.0
         drift_clients = 0
         upload_clients = 0
-        downlink_Check_clients = 0
 
         # Modeled cell-capacity envelope
         current_b_max = TOTAL_BANDWIDTH * (0.8 + 0.2 * math.sin(server_round))
@@ -204,17 +204,12 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         for client, res in shuffled_results:
             metrics = res.metrics
             status = metrics.get("status", "WAIT")
-            was_in_continue = int(metrics.get("was_in_continue", 0))
-            if not was_in_continue and status != "WAIT":
-                downlink_Check_clients += 1
 
             r_c_comp += float(metrics.get("c_comp", 0.0))
             r_gain += float(metrics.get("gain", 0.0))
-
             if int(metrics.get("epochs_trained", 0)) > 0:
                 drift_sum += float(metrics.get("c_drift", 0.0))
                 drift_clients += 1
-
             if res.num_examples > 0:
                 upload_clients += 1
 
@@ -265,7 +260,6 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
         self.total_transmitted_mb += round_transmitted_mb
 
         mean_model_drift = drift_sum / drift_clients if drift_clients else ""
-
         self.logger.stage_round_metrics(
             server_round,
             [

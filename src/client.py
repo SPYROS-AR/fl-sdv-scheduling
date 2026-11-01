@@ -223,6 +223,7 @@ class FLVehicle(fl.client.NumPyClient):
             # Need at least 2 local epochs (3 points in history) to fit 3-parameter curve
             if epoch < 2:
                 continue
+
             if epoch >= min(self.rho, max_allowed_epochs):
                 break
 
@@ -245,6 +246,7 @@ class FLVehicle(fl.client.NumPyClient):
 
         actual_gain = max(0.0, init_loss - curr_loss)
         self._last_gain = actual_gain
+        final_drift = self._compute_drift(global_weights)
 
         if epoch == 0:
             self._in_continue = False
@@ -252,7 +254,13 @@ class FLVehicle(fl.client.NumPyClient):
             self._save_persistent_state()
             return [], 0, self._empty_metrics("WAIT", was_in_continue)
 
-        is_sync = state["bandwidth"] >= state["bw_threshold"]
+        # Blueprint Part 4: Synchronize if link is sufficient OR if accumulated drift/gain exhaustion
+        # during a multi-round local trajectory requires flushing weights to the server
+        is_sync = (
+            state["bandwidth"] >= state["bw_threshold"]
+            or final_drift > (0.85 * state["drift_threshold"])
+            or (was_in_continue == 1 and actual_gain < state["gain_threshold"])
+        )
 
         if is_sync:
             status = "SYNC"
@@ -276,7 +284,7 @@ class FLVehicle(fl.client.NumPyClient):
             "epochs_trained": epoch,
             "c_comp": (epoch / self.rho) * state["u_crit"],
             "c_net": (self.M / max(0.1, state["bandwidth"])) if is_sync else 0.0,
-            "c_drift": self._compute_drift(global_weights),
+            "c_drift": final_drift,
             "gain": actual_gain,
             "was_in_continue": was_in_continue,
         }
@@ -293,7 +301,7 @@ class FLVehicle(fl.client.NumPyClient):
             "bandwidth": float(config.get("bandwidth", 10.0)),
             "tau_continue": float(config.get("tau_continue", 0.1)),
             "drift_threshold": float(config.get("drift_threshold", 20.0)),
-            "gain_threshold": float(config.get("gain_threshold", 0.01)),
+            "gain_threshold": float(config.get("gain_threshold", 0.03)),
             "bw_threshold": float(config.get("bw_threshold", 20.0)),
         }
 
@@ -361,13 +369,16 @@ class FLVehicle(fl.client.NumPyClient):
     def _predict_loss(self, history):
         if len(history) < 3:
             return float(history[-1])
+
         x_data = np.arange(len(history), dtype=np.float64)
         y_data = np.array(history, dtype=np.float64)
+
         l_inf_init = max(0.0, float(np.min(y_data) * 0.8))
         a_init = max(1e-3, float(y_data[0] - l_inf_init))
         b_init = 0.5
         p0 = [l_inf_init, a_init, b_init]
         bounds = ([0.0, 0.0, 1e-4], [float(np.min(y_data)), np.inf, 10.0])
+
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", OptimizeWarning)

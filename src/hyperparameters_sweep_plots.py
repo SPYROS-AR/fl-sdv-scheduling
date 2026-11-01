@@ -1,6 +1,7 @@
 """Plot Pareto-style views of completed hyperparameter sweeps."""
 
 from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -11,12 +12,14 @@ def identify_pareto_frontier(df, x_col, y_col, maximize_x=False, maximize_y=True
     sorted_df = df.sort_values(by=x_col, ascending=not maximize_x)
     pareto_front = []
     current_best_y = -np.inf if maximize_y else np.inf
+
     for _, row in sorted_df.iterrows():
         y_val = row[y_col]
         is_better = y_val > current_best_y if maximize_y else y_val < current_best_y
         if is_better:
             pareto_front.append(row)
             current_best_y = y_val
+
     return pd.DataFrame(pareto_front, columns=df.columns)
 
 
@@ -31,6 +34,7 @@ def main(input_csv=""):
         if p and p.exists():
             path = p
             break
+
     if not path:
         raise FileNotFoundError(
             "Sweep rankings file not found in root or final_metrics/"
@@ -56,8 +60,8 @@ def main(input_csv=""):
         (
             "interference",
             "utility",
-            "Compute Interference",
-            "System Utility",
+            r"Compute Interference ($\sum c_i U_i^{\mathrm{crit}}$)",
+            r"System Utility ($\mathcal{U}$)",
             "utility_vs_interference.pdf",
             True,
             "delta",
@@ -66,8 +70,8 @@ def main(input_csv=""):
         (
             "network_mbs",
             "drift",
-            "Network Payload / Cost (MB)",
-            "Model Drift",
+            r"Cumulative Network Latency Cost ($\sum C_{\mathrm{net}}$)",
+            r"Model Drift ($\sum D_i$)",
             "drift_vs_network.pdf",
             False,
             "utility",
@@ -76,8 +80,8 @@ def main(input_csv=""):
         (
             "network_mbs",
             "utility",
-            "Network Payload / Cost (MB)",
-            "System Utility",
+            r"Cumulative Network Latency Cost ($\sum C_{\mathrm{net}}$)",
+            r"System Utility ($\mathcal{U}$)",
             "utility_vs_network.pdf",
             True,
             "delta",
@@ -86,8 +90,8 @@ def main(input_csv=""):
         (
             "drift",
             "utility",
-            "Model Drift",
-            "System Utility",
+            r"Model Drift ($\sum D_i$)",
+            r"System Utility ($\mathcal{U}$)",
             "utility_vs_drift.pdf",
             True,
             "interference",
@@ -99,6 +103,7 @@ def main(input_csv=""):
         if x_col not in df or y_col not in df:
             print(f"Skipping {filename}: required columns are missing.")
             continue
+
         fig, ax = plt.subplots(figsize=(6, 4))
         scatter = ax.scatter(
             df[x_col],
@@ -113,6 +118,7 @@ def main(input_csv=""):
         if color_col in df:
             colorbar = plt.colorbar(scatter, ax=ax)
             colorbar.set_label(color_col.replace("_", " ").title())
+
         pareto = identify_pareto_frontier(
             df, x_col, y_col, maximize_x=False, maximize_y=maximize_y
         )
@@ -125,6 +131,7 @@ def main(input_csv=""):
                 markersize=4,
                 label="Pareto Frontier",
             )
+
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
         ax.legend(loc="best")
@@ -135,6 +142,7 @@ def main(input_csv=""):
         print(f"Saved {output_dir / filename} and {filename}")
 
     fig_comp, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
     sc1 = ax1.scatter(
         df["interference"],
         df["utility"],
@@ -190,7 +198,7 @@ def main(input_csv=""):
             markersize=5,
             label="Pareto Frontier",
         )
-    ax2.set_xlabel("Network Cost (MB)")
+    ax2.set_xlabel(r"Cumulative Network Latency Cost ($\sum C_{\mathrm{net}}$)")
     ax2.set_ylabel(r"Model Drift ($\sum D_i$)")
     ax2.set_title("(b) Model Drift vs. Network Cost", fontsize=11, fontweight="bold")
     ax2.legend(loc="upper right")
