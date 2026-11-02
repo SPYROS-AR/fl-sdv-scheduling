@@ -114,7 +114,6 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
             raise ValueError(
                 f"Network dataframe missing required columns: {sorted(missing)}"
             )
-
         self.df_network = df_network.reset_index(drop=True)
         self.alpha, self.beta = alpha, beta
         self.gamma, self.delta = gamma, delta
@@ -197,6 +196,7 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
 
         # Modeled cell-capacity envelope
         current_b_max = TOTAL_BANDWIDTH * (0.8 + 0.2 * math.sin(server_round))
+
         rng = random.Random(server_round)
         shuffled_results = list(results)
         rng.shuffle(shuffled_results)
@@ -205,31 +205,38 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
             metrics = res.metrics
             status = metrics.get("status", "WAIT")
 
+            # Onboard compute interference is incurred whenever local epochs run
             r_c_comp += float(metrics.get("c_comp", 0.0))
-            r_gain += float(metrics.get("gain", 0.0))
+
             if int(metrics.get("epochs_trained", 0)) > 0:
                 drift_sum += float(metrics.get("c_drift", 0.0))
                 drift_clients += 1
-            if res.num_examples > 0:
-                upload_clients += 1
 
             if res.num_examples == 0:
                 if status == "WAIT":
                     r_waits += 1
                 elif status == "CONTINUE":
                     r_continues += 1
+                    # Local weights are persisted on disk; learning gain is retained
+                    r_gain += float(metrics.get("gain", 0.0))
+                    r_c_drift += float(metrics.get("c_drift", 0.0))
             else:
+                upload_clients += 1
                 payload = (
                     self.model_payload_mb
                     if self.model_payload_mb > 0
                     else MODEL_SIZE_MB
                 )
+                # Every attempted upload contends for the wireless channel and incurs drift
+                r_c_net += float(metrics.get("c_net", 0.0))
+                r_c_drift += float(metrics.get("c_drift", 0.0))
+
                 if current_bw_used + payload <= current_b_max:
                     valid_results.append((client, res))
                     r_syncs += 1
                     current_bw_used += payload
-                    r_c_net += float(metrics.get("c_net", 0.0))
-                    r_c_drift += float(metrics.get("c_drift", 0.0))
+                    # Only non-dropped uploads contribute learning gain to the global model
+                    r_gain += float(metrics.get("gain", 0.0))
                 else:
                     r_dropped += 1
 
@@ -258,8 +265,8 @@ class DynamicFLStrategy(fl.server.strategy.FedAvg):
 
         self.total_uplink_mb += uplink_mb
         self.total_transmitted_mb += round_transmitted_mb
-
         mean_model_drift = drift_sum / drift_clients if drift_clients else ""
+
         self.logger.stage_round_metrics(
             server_round,
             [

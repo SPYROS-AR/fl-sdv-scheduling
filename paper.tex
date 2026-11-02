@@ -22,7 +22,7 @@ Athens, Greece}
 \maketitle
 
 \begin{abstract}
-Deploying Federated Learning (FL) on Software-Defined Vehicles (SDVs) involves balancing wireless transmission overhead, client model divergence, and onboard compute contention with safety-critical vehicular workloads. Existing vehicular FL frameworks typically assume dedicated onboard compute and rely on static local training schedules, which frequently leads to uplink channel congestion and compute starvation for co-located real-time services. In this paper, we propose a runtime heuristic policy engine that dynamically regulates local training epochs and client upload schedules based on available compute slack, instantaneous link throughput, and predicted local learning gain. The engine formalizes a three-state execution model (\texttt{WAIT}, \texttt{CONTINUE}, \texttt{SYNC}) and uses bounded non-linear curve fitting to extrapolate empirical loss trajectories before committing onboard execution slack. We evaluate the approach across Dirichlet non-IID partitioned benchmarks ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$) under realistic V2X channel traces against static epoch baselines ($E \in \{1, 5, 10\}$) and FedProx over 250 communication rounds. Under severe statistical skew ($\alpha_{\text{Dir}} = 0.1$), the dynamic policy attains 70.29\% top-1 centralized test accuracy with FedAvg and 72.51\% with FedProx, outperforming high-epoch static training ($68.87\%$). Furthermore, the engine reduces cumulative uplink bandwidth consumption by 34.5\% (saving over 8.0~GB of wireless transfers), eliminates 83.2\% of transmission buffer dropouts (down from 567 to 95), and reduces compute contention on safety-critical tasks by up to 60.7\%.
+Training machine learning models across a fleet of Software-Defined Vehicles (SDVs) using Federated Learning (FL) means juggling three competing pressures at once: limited wireless uplink capacity, diverging client models, and the need to share onboard processors with safety-critical driving tasks. Most existing vehicular FL systems sidestep this tension by fixing the number of local training epochs and assuming dedicated compute---an approach that routinely floods the cellular uplink and starves real-time services of CPU cycles. We present a lightweight runtime policy engine that decides, on the fly, how many local epochs each vehicle should run and when it should upload, drawing on three signals: available compute slack, instantaneous link quality, and a short-horizon prediction of local learning progress. Each vehicle cycles through three states---\texttt{WAIT} (yield resources), \texttt{CONTINUE} (keep training locally), and \texttt{SYNC} (upload)---guided by a bounded exponential curve fit that forecasts diminishing returns before they materialise. We benchmark the engine on Dirichlet non-IID partitions ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$) with realistic V2X channel traces against fixed-epoch baselines ($E \in \{1, 5, 10\}$) and FedProx over 250 rounds. Under heavy data skew ($\alpha_{\text{Dir}} = 0.1$), Dynamic FedProx reaches 72.02\% centralized test accuracy---on par with the best static baseline---while cutting uplink traffic by 28\% (saving over 6.5~GB of wireless transfers), eliminating 76\% of transmission buffer overflows (from 567 down to ${\sim}138$), and reducing compute interference with safety-critical vehicle tasks by up to 74\%.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -30,40 +30,40 @@ Federated Learning, Software-Defined Vehicles, V2X Networks, Resource Allocation
 \end{IEEEkeywords}
 
 \section{Introduction}
-Modern Software-Defined Vehicles (SDVs) operate as mobile computing platforms running complex machine learning workloads for driver assistance, cabin perception, and vehicular diagnostics. Because these systems continuously generate substantial volumes of high-dimensional sensor data, Federated Learning (FL) provides an attractive paradigm for collaboratively training shared models across fleets without transferring raw, privacy-sensitive telemetry to cloud infrastructure.
+Modern Software-Defined Vehicles (SDVs) are, in effect, mobile data centres on wheels. They run sophisticated perception, planning, and diagnostics workloads while continuously producing large volumes of high-dimensional sensor data. Federated Learning (FL) is a natural fit for this setting: it lets an entire fleet collaboratively improve a shared model without ever uploading raw, privacy-sensitive telemetry to the cloud.
 
-However, executing FL in vehicular networks introduces operational constraints that differ fundamentally from conventional edge computing environments:
+Bringing FL into a vehicular network, however, exposes two operational challenges that set it apart from conventional edge deployments:
 \begin{enumerate}
-    \item \textbf{Dynamic V2X Link Contention:} Vehicle-to-Everything (V2X) wireless links exhibit time-varying channel attenuation, handovers, and limited cell uplink capacity. Synchronizing high-dimensional parameter updates across multiple vehicles during each communication round rapidly congests local cellular infrastructure. Conversely, artificially reducing synchronization frequency over heterogeneous (non-IID) vehicular data induces severe model divergence (client drift), degrading global convergence.
-    \item \textbf{Mixed-Criticality Hardware Contention:} SDVs rely on consolidated, virtualized hardware architectures where FL workloads must share CPU and accelerator capacity with safety-critical Electronic Control Unit (ECU) services (e.g., ADAS perception, object tracking, and trajectory planning). In-vehicle FL is strictly a secondary background process that must yield execution slack whenever safety-critical processes demand compute. Enforcing static training schedules without inspecting processor occupancy risks severe compute starvation and deadline misses for higher-priority tasks.
+    \item \textbf{Volatile V2X links.} Vehicle-to-Everything (V2X) radio channels suffer from time-varying fading, handovers, and limited cell-sector uplink capacity. Pushing large parameter updates from every vehicle at every round quickly saturates the available uplink. Reducing upload frequency helps the channel but, on non-IID vehicular data, causes local models to drift apart and degrades the global aggregate.
+    \item \textbf{Mixed-criticality compute sharing.} SDVs consolidate FL training on the same hardware that runs safety-critical ECU services---ADAS perception, object tracking, trajectory planning. FL is strictly a background task: it must yield processor time whenever a higher-priority workload needs it. A rigid, fixed-epoch training schedule that ignores real-time CPU occupancy risks starving safety tasks and missing hard deadlines.
 \end{enumerate}
 
-Existing vehicular FL scheduling solutions generally focus on link-level optimization, rate adaptation, or joint transmit-power allocation while treating onboard compute as either fixed or dedicated. A crucial limitation is the absence of \emph{learning-aware} decision making: current frameworks determine upload frequency and client selection based on channel conditions and computational budgets, but never evaluate whether the local training they schedule produces meaningful model improvements. Under non-IID vehicular data, a client may reach diminishing returns after two local epochs, yet a fixed-epoch policy forces it to continue---wasting compute, increasing parameter drift, and degrading convergence upon aggregation. A second gap concerns mixed-criticality hardware contention: existing formulations model onboard compute as unlimited or statically partitioned, ignoring the time-varying nature of safety workload demand. When an ADAS perception pipeline experiences a transient spike, a scheduler that continues training can induce deadline violations in safety-critical tasks.
+Existing vehicular FL schedulers typically optimise link-level resources---transmit power, rate adaptation, client selection---while treating onboard compute as either unlimited or statically partitioned. Two gaps stand out. First, no current framework asks whether the training it schedules actually produces useful model improvement; under non-IID data a vehicle may hit diminishing returns after just two local epochs, yet a fixed-$E$ policy forces it to keep going---wasting cycles, inflating drift, and ultimately hurting global convergence. Second, existing formulations ignore the time-varying nature of safety-workload demand: when an ADAS pipeline spikes, a scheduler that blindly continues training can cause deadline violations in safety-critical tasks.
 
-To address these combined operational challenges, we propose an online runtime policy engine that coordinates compute allocation, local training depth, and upload decisions via a unified utility maximization objective:
+We address both gaps with an online policy engine that coordinates compute allocation, training depth, and upload timing through a single utility-maximisation objective:
 \begin{equation*}
 \max \sum \left[ \delta \cdot G_i(t) - \alpha C_{\text{net}}(t) - \beta C_{\text{comp}}(t) - \gamma C_{\text{drift}}(t) \right]
 \end{equation*}
-Rather than assuming dedicated hardware, our engine monitors co-located workload occupancy, channel capacity, and model divergence to dynamically transition clients among three discrete execution states: \texttt{WAIT} (idle and yield compute), \texttt{CONTINUE} (autonomous local training with weight persistence), and \texttt{SYNC} (parameter upload). In particular, the explicit \texttt{WAIT} state prevents vehicles from burning energy or contending with ADAS tasks when channel throughput is low and anticipated learning gain is negligible.
+Rather than assuming dedicated hardware, the engine monitors co-located workload occupancy, channel capacity, and model divergence to transition each vehicle among three execution states: \texttt{WAIT} (idle---yield compute to safety tasks), \texttt{CONTINUE} (keep training locally while persisting weights on disk), and \texttt{SYNC} (upload the parameter update). The explicit \texttt{WAIT} state is especially important: it stops vehicles from burning energy or contending with ADAS tasks when the channel is poor and local training would yield negligible improvement.
 
-The main contributions of this work are:
+In summary, we make the following contributions:
 \begin{itemize}
-    \item We formulate the vehicular FL scheduling problem as an online utility maximization framework that jointly optimizes empirical learning gain against uplink bandwidth penalties, safety-critical compute contention, and parameter drift.
-    \item We develop a three-state runtime policy engine (\texttt{WAIT}, \texttt{CONTINUE}, \texttt{SYNC}) that incorporates bounded non-linear exponential curve fitting to predict marginal validation gain before executing subsequent local epochs.
-    \item We validate the mechanism on non-IID Dirichlet-partitioned vehicular testbeds ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$) against static epoch baselines ($E \in \{1, 5, 10\}$) and FedProx across 250 communication rounds, demonstrating a 34.5\% reduction in pure uplink bandwidth (17.3\% total payload), an 83.2\% reduction in transmission buffer dropouts (from 567 to 95), and up to 60.7\% lower compute contention against safety-critical vehicle tasks.
+    \item A formulation of the vehicular FL scheduling problem as an online utility-maximisation framework that balances empirical learning gain against uplink bandwidth cost, safety-critical compute contention, and parameter drift.
+    \item A three-state runtime policy engine (\texttt{WAIT}, \texttt{CONTINUE}, \texttt{SYNC}) that uses bounded non-linear exponential curve fitting to predict marginal validation gain before committing to additional local epochs.
+    \item An empirical evaluation on non-IID Dirichlet partitions ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$) against fixed-epoch baselines ($E \in \{1, 5, 10\}$) and FedProx over 250 rounds, showing a 28\% reduction in uplink traffic, a 76\% drop in transmission buffer overflows (from 567 to ${\sim}$138), and up to 74\% lower compute contention with safety-critical tasks.
 \end{itemize}
 
 \section{Related Work}
-Vehicular federated learning literature can be broadly categorized into three primary domains: mobility-aware transmission scheduling, joint compute-communication optimization, and model compression frameworks.
+Prior work on vehicular federated learning falls broadly into three categories: mobility-aware transmission scheduling, joint compute--communication optimisation, and compressed or asynchronous transfer schemes.
 
 \subsection{Mobility-Aware Transmission Scheduling}
-Several studies focus on wireless channel uncertainty and vehicle mobility. Hong et al.~\cite{ref_hong} modeled Vehicle-to-Infrastructure (V2I) model uploads as a Markov Decision Process (MDP) to reduce latency and power consumption. Karatas et al.~\cite{ref_karatas} proposed variable-rate client selection to mitigate imperfect channel state information. Yan et al.~\cite{ref_yan} introduced opportunistic Vehicle-to-Vehicle (V2V) relays to facilitate model transfers under energy constraints. These methods address link degradation but treat vehicular compute capacity as an unconstrained or static parameter.
+A number of studies tackle the challenge of uploading models over unreliable, time-varying wireless links. Hong et al.~\cite{ref_hong} cast V2I model uploads as a Markov Decision Process to jointly minimise latency and energy. Karatas et al.~\cite{ref_karatas} introduced variable-rate client selection that accounts for imperfect channel state information, while Yan et al.~\cite{ref_yan} exploited opportunistic V2V relays to boost upload success rates under energy constraints. Although these methods handle link degradation effectively, they treat vehicular compute as an unconstrained or static resource.
 
 \subsection{Joint Compute and Communication Co-Design}
-To address the coupling between onboard execution time and wireless transmission delay, joint resource allocation frameworks have been explored. Qiang et al.~\cite{ref_qiang} investigated dynamic model partitioning across vehicular edge nodes based on instantaneous processor and bandwidth availability. Ballotta et al.~\cite{ref_ballotta} proposed a predictive computation-scheduling method using radio environment maps. Zhang et al.~\cite{ref_zhang_selection} jointly optimized client selection and resource allocation to improve convergence accuracy, while Pervej et al.~\cite{ref_pervej} formulated iteration counts and CPU frequencies alongside physical resource block allocations. Li et al.~\cite{ref_fedprox} introduced FedProx to introduce a proximal regularization term that handles system and statistical heterogeneity. Although these formulations link computation latency with transmission budgets, they generally assume dedicated hardware partitions for FL.
+Several frameworks explicitly couple onboard processing time with wireless transmission delay. Qiang et al.~\cite{ref_qiang} partitioned model layers dynamically across vehicular edge nodes according to real-time processor and bandwidth availability. Ballotta et al.~\cite{ref_ballotta} used radio environment maps to schedule computation predictively. Zhang et al.~\cite{ref_zhang_selection} jointly optimised client selection and resource allocation for convergence accuracy, and Pervej et al.~\cite{ref_pervej} folded CPU frequencies and iteration counts into physical resource block allocation. Li et al.~\cite{ref_fedprox} proposed FedProx, adding a proximal regularisation term that mitigates system and statistical heterogeneity. While these methods link computation latency to transmission budgets, they generally assume a dedicated hardware partition for FL.
 
 \subsection{Compressed and Asynchronous Frameworks}
-To reduce communication bottlenecks and handle stragglers, quantization and asynchronous aggregation have been deployed. Liu et al.~\cite{ref_liu} optimized local batch sizes and gradient compression ratios under latency bounds. Zhang et al.~\cite{ref_zhang_quant} evaluated adaptive quantization schemes based on channel conditions. In asynchronous settings, Wu et al.~\cite{ref_wu} tuned upload frequency to instantaneous link quality, and Zhang et al.~\cite{ref_zhang_automotive} deployed sliding-window parameter transfers on embedded automotive GPUs.
+Quantisation and asynchronous aggregation offer complementary ways to ease communication bottlenecks. Liu et al.~\cite{ref_liu} tuned batch sizes and gradient compression ratios under latency bounds; Zhang et al.~\cite{ref_zhang_quant} adapted quantisation levels to channel conditions. On the asynchronous side, Wu et al.~\cite{ref_wu} scaled upload frequency to instantaneous link quality, and Zhang et al.~\cite{ref_zhang_automotive} demonstrated sliding-window parameter transfers on embedded automotive GPUs.
 
 \begin{table*}[t]
 \caption{Comparison of Vehicular FL Resource Allocation Approaches}
@@ -90,13 +90,13 @@ Zhang et al.~\cite{ref_zhang_automotive} & Embedded GPU hardware evaluation & Sl
 \end{table*}
 
 \subsection{Summary and Positioning}
-As summarized in Table~\ref{tab:related_work}, existing approaches primarily optimize radio resource blocks or static computation partitions. Critically, no prior work jointly evaluates: (i)~\emph{whether} an additional local epoch will produce measurable learning gain, and (ii)~\emph{whether} the vehicle's CPU can afford that epoch without starving co-located safety workloads. Modern SDVs operate in mixed-criticality environments where FL shares compute capacity with high-priority safety tasks. Our work bridges both gaps by introducing a dynamic compute occupancy metric ($U_i^{\text{crit}}(t)$), a bounded exponential gain predictor, and an online heuristic that co-optimizes training depth and communication timing based on real-time vehicle resource constraints and empirical learning dynamics.
+Table~\ref{tab:related_work} maps each prior approach against its compute model, network model, and optimisation target. A clear pattern emerges: existing methods optimise radio resource blocks or static computation partitions, but none of them jointly ask two questions that matter in practice: (i)~will one more local epoch actually produce a measurable improvement? and (ii)~can the vehicle's processor afford that epoch without starving a co-located safety workload? Our engine fills both gaps by introducing a dynamic compute-occupancy metric ($U_i^{\text{crit}}(t)$), a bounded exponential gain predictor, and an online heuristic that co-optimises training depth and communication timing in real time.
 
 \section{System Model and Problem Formulation}
-We consider a vehicular federated learning network with $N$ client vehicles, indexed by $\mathcal{V} = \{1, 2, \dots, N\}$, communicating with an edge or roadside server over discrete decision rounds $t \in \{0, 1, \dots, T-1\}$.
+We consider $N$ vehicles, indexed $\mathcal{V} = \{1, \dots, N\}$, that communicate with an edge or roadside FL server over discrete decision rounds $t \in \{0, 1, \dots, T{-}1\}$.
 
 \subsection{Vehicle State Representation}
-At round $t$, each vehicle $i \in \mathcal{V}$ observes a local state vector:
+At each round $t$, vehicle $i$ observes a local state vector:
 \begin{equation}
 S_i(t) = \{B_i(t),\, U_i^{\text{crit}}(t),\, D_i(t),\, G_i^{\text{prior}}(t)\}
 \end{equation}
@@ -108,54 +108,54 @@ where:
     \item $G_i^{\text{prior}}(t)$ denotes the historical empirical learning gain achieved during the vehicle's preceding active training window.
 \end{itemize}
 
-\subsection{Cost and Gain Formulation}
-The operational metrics governing training round $t$ are formalized as follows:
+\subsection{Cost and Gain Components}
+Training round $t$ is governed by four operational metrics.
 
 \subsubsection{Communication Cost}
-Let $p_i(t) \in \{0, 1\}$ denote the binary transmission decision ($p_i(t) = 1$ indicates model upload). The network transmission delay penalty is modeled as:
+Let $p_i(t) \in \{0,1\}$ indicate whether vehicle $i$ uploads its model at round $t$. The network cost is:
 \begin{equation}
 C_{\text{net}}(t) = \sum_{i \in \mathcal{V}} p_i(t) \frac{M_i}{B_i(t)}
 \end{equation}
-where $M_i$ is the physical parameter payload size in megabytes (e.g., 9.31~MiB for an FP32 ResNet-9 model).
+where $M_i$ is the parameter payload size in megabytes (e.g., 9.31~MiB for an FP32 ResNet-9).
 
 \subsubsection{Compute Contention Cost}
-Let $c_i(t) \in [0, 1]$ represent the normalized compute allocation granted to the FL process ($c_i(t) = e_i(t)/\rho_i$, where $e_i(t)$ is the executed local epochs and $\rho_i$ is the maximum epoch capacity). The contention penalty imposed on co-located services is defined as:
+Let $c_i(t) = e_i(t)/\rho_i \in [0,1]$ denote the fraction of compute capacity consumed by FL, where $e_i(t)$ is the number of executed local epochs and $\rho_i$ the maximum epoch budget. The interference imposed on co-located safety tasks is:
 \begin{equation}
 C_{\text{comp}}(t) = \sum_{i \in \mathcal{V}} c_i(t) U_i^{\text{crit}}(t)
 \end{equation}
 
 \subsubsection{Parameter Divergence (Model Drift)}
-We measure client drift $D_i(t)$ directly as the true global parameter vector Euclidean distance between local parameters $\mathbf{w}_{\text{local}, i}(t)$ and received global parameters $\mathbf{w}_{\text{global}}(t)$:
+We measure how far each vehicle's local parameters $\mathbf{w}_{\text{local},i}(t)$ have strayed from the global model $\mathbf{w}_{\text{global}}(t)$ using a straightforward Euclidean distance:
 \begin{equation}
 D_i(t) = \| \mathbf{w}_{\text{local}, i}(t) - \mathbf{w}_{\text{global}}(t) \|_2 = \sqrt{\sum_{l=1}^L \| \mathbf{w}_{i, l}(t) - \mathbf{w}_{\text{global}, l}(t) \|_2^2}
 \end{equation}
-where $l \in \{1, \dots, L\}$ indexes all weight and bias tensors. The cumulative fleet drift is:
+where $l \in \{1, \dots, L\}$ indexes weight and bias tensors. Summing over the fleet gives the cumulative drift:
 \begin{equation}
 C_{\text{drift}}(t) = \sum_{i \in \mathcal{V}} D_i(t)
 \end{equation}
 
 \subsubsection{Learning Gain and Marginal Utility}
-To quantify empirical optimization progress, we track local validation loss reduction:
+We track how much local training actually reduces validation loss:
 \begin{equation}
 G_i(t) = \max\left(0,\, L_i(\mathbf{w}_{\text{global}}(t)) - L_i(\mathbf{w}_{\text{local}, i}(t))\right)
 \end{equation}
-At local epoch $e \in \{1, \dots, \rho_i\}$, the client evaluates the marginal utility of executing epoch $e+1$:
+At local epoch $e$, the vehicle asks whether running one more epoch is worthwhile by evaluating a marginal utility score:
 \begin{equation}
 \Delta U_i(e+1) = \delta \cdot \widehat{G}_i(e+1) - \beta \frac{U_i^{\text{crit}}(t)}{\rho_i} - \gamma D_i(e+1)
 \label{eq:marginal_utility}
 \end{equation}
-where $\widehat{G}_i(e+1)$ is the expected loss reduction predicted via curve fitting, and $\delta, \beta, \gamma$ are positive weighting coefficients.
+Here $\widehat{G}_i(e{+}1)$ is the predicted loss reduction from curve fitting, and $\delta, \beta, \gamma > 0$ are weighting coefficients.
 
-The marginal utility $\Delta U_i(e{+}1)$ serves as a per-epoch decision criterion that enables fine-grained adaptive training depth. Rather than committing to a predetermined number of local epochs, each vehicle evaluates whether the expected improvement in validation loss outweighs the resource costs. This prevents two failure modes inherent in fixed-epoch FL: (i)~\emph{under-training}, where clients with rich local datasets are artificially limited; and (ii)~\emph{over-training}, where clients with depleted or redundant data continue burning compute and accumulating destructive drift.
+This per-epoch check lets each vehicle adapt its training depth on the fly, avoiding two pathologies of fixed-epoch FL: (i)~\emph{under-training}, where data-rich clients are artificially capped, and (ii)~\emph{over-training}, where clients with depleted or redundant data burn compute and pile up destructive drift.
 
-\subsection{Global Fleet Optimization Objective}
-The global fleet objective over time horizon $T$ is formulated as an online utility maximization:
+\subsection{Global Fleet Objective}
+Across the full time horizon $T$ the fleet seeks to maximise:
 \begin{equation}
 \max_{\{c_i(t), e_i(t), p_i(t)\}} \sum_{t=0}^{T-1} \left[ \delta \sum_{i \in \mathcal{V}} G_i(t) - \alpha C_{\text{net}}(t) - \beta C_{\text{comp}}(t) - \gamma C_{\text{drift}}(t) \right]
 \label{eq:global_opt}
 \end{equation}
 
-The positive term $\delta \sum_i G_i(t)$ rewards measurable empirical progress, while the penalty terms impose costs for bandwidth consumption, safety-critical compute contention, and parameter divergence. This structure ensures that the trivially cost-optimal solution of not training is penalized by forfeiting learning rewards, while the trivially gain-optimal solution of unrestricted training is penalized by resource costs. The policy engine therefore seeks the productive equilibrium between learning progress and operational sustainability.
+The positive term rewards measurable learning progress; the three penalty terms discourage bandwidth waste, safety-task interference, and parameter divergence. This structure prevents the trivially cheap solution (never train) from dominating---since it forfeits all learning reward---and equally prevents the trivially greedy solution (train without limit) from dominating, since it racks up resource costs. The policy engine steers towards the productive middle ground.
 
 \noindent subject to:
 \begin{align}
@@ -165,9 +165,9 @@ The positive term $\delta \sum_i G_i(t)$ rewards measurable empirical progress, 
 & D_i(t) \le D_i^{\text{max}}, \quad \forall i, t \label{eq:drift_constraint}
 \end{align}
 
-Constraint~\eqref{eq:slack_constraint} restricts FL execution to available compute slack. Constraint~\eqref{eq:epochs_constraint} bounds local training epochs by available compute. Constraint~\eqref{eq:cell_constraint} limits simultaneous uploads to total cell uplink capacity $B_{\text{cell}}(t)$, and~\eqref{eq:drift_constraint} bounds client parameter deviation.
+Constraint~\eqref{eq:slack_constraint} keeps FL within the available compute slack. Constraint~\eqref{eq:epochs_constraint} bounds local epochs by that slack. Constraint~\eqref{eq:cell_constraint} caps simultaneous uploads to the cell's total uplink capacity $B_{\text{cell}}(t)$, and~\eqref{eq:drift_constraint} prevents any single client from drifting too far.
 
-Because future channel throughput and safety workload spikes are non-deterministic, solving~\eqref{eq:global_opt} offline is intractable. We implement an online deterministic policy engine that approximates this objective at each decision interval.
+Because future channel quality and safety-workload spikes are fundamentally unpredictable, solving~\eqref{eq:global_opt} offline is intractable. We therefore implement it as an online, deterministic policy engine that approximates the objective at each decision interval.
 
 \section{Runtime Policy Engine}
 
@@ -211,124 +211,118 @@ Because future channel throughput and safety workload spikes are non-determinist
 \end{algorithmic}
 \end{algorithm}
 
-At each decision round $t$, each client evaluates local constraints and transitions among three discrete execution states (detailed in Algorithm~\ref{alg:policy_engine}):
+At each round, every vehicle evaluates its local constraints and transitions into one of three states (see Algorithm~\ref{alg:policy_engine}):
 
 \begin{itemize}
-    \item \textbf{WAIT (Idle):} The vehicle performs zero local epochs ($e_i=0$) and transmits no update ($p_i=0$). This state is entered under two conditions: (i) compute slack is insufficient for even a single epoch ($1 - U_i^{\text{crit}} < 1/\rho_i$), yielding CPU capacity to safety tasks; or (ii) uplink throughput is degraded ($B_i < B_{\text{thresh}}$) while prior learning progress is negligible ($G_i^{\text{prior}} \le G_{\text{thresh}}$). This prevents energy waste and model drift when transmission is infeasible and training yields diminishing returns.
-    \item \textbf{CONTINUE (Autonomous Local Training):} When compute slack permits but the uplink channel is congested ($B_i < B_{\text{thresh}}$), yet local loss is actively decreasing ($G_i > G_{\text{thresh}}$), the vehicle continues training locally without uploading ($p_i=0$). Crucially, client weights are preserved across rounds rather than reset to global weights, allowing autonomous multi-epoch optimization.
-    \item \textbf{SYNC (Model Upload):} When local training concludes and instantaneous link throughput satisfies $B_i(t) \ge B_{\text{thresh}}$, the client uploads its updated parameter vector ($p_i=1$). The server incorporates the update into federated aggregation and updates the global model.
+    \item \textbf{WAIT (Idle).} The vehicle runs zero local epochs and sends nothing. This happens when (i) safety tasks leave too little CPU headroom for even a single epoch ($1 - U_i^{\text{crit}} < 1/\rho_i$), or (ii) the uplink is degraded ($B_i < B_{\text{thresh}}$) and prior learning progress was negligible ($G_i^{\text{prior}} \le G_{\text{thresh}}$). Entering \texttt{WAIT} prevents wasted energy and avoids accumulating drift when neither transmission nor meaningful training is feasible.
+    \item \textbf{CONTINUE (Local Training).} When compute slack permits training but the uplink is congested, yet local loss is still actively decreasing, the vehicle keeps training without uploading. Crucially, its weights are persisted across rounds rather than reset to the global model, enabling multi-round autonomous optimisation.
+    \item \textbf{SYNC (Upload).} Once local training finishes and the link can support it ($B_i(t) \ge B_{\text{thresh}}$), the vehicle uploads its updated parameters for federated aggregation.
 \end{itemize}
 
 \subsection{Bounded Exponential Gain Prediction}
-To decide whether committing computational slack to epoch $e+1$ yields positive marginal utility, the client fits an exponential parametric curve to observed validation loss history:
+Before committing additional compute to epoch $e{+}1$, the vehicle fits an exponential decay curve to its observed validation-loss history:
 \begin{equation}
 L(e) \approx L_\infty + A e^{-B e}
 \end{equation}
-Unconstrained non-linear regression on short, noisy loss trajectories ($N \ge 3$) frequently suffers from numerical instability, producing negative asymptotic losses ($L_\infty < 0$) or negative decay rates ($B < 0$). To guarantee well-behaved predictions, we formulate a bounded non-linear least squares optimization:
+Fitting this model via unconstrained non-linear regression on short, noisy loss traces ($N \ge 3$ points) often produces nonsensical estimates---negative asymptotic losses or negative decay rates. To keep predictions well-behaved, we solve a bounded non-linear least-squares problem:
 \begin{equation}
 \min_{L_\infty, A, B} \sum_{k=0}^{e} \left( L(k) - (L_\infty + A e^{-B k}) \right)^2
 \end{equation}
-subject to $0 \le L_\infty \le \min(H)$, $A \ge 0$, and $10^{-4} \le B \le 10.0$, solved with initial estimate $p_0 = [0.8 \min(H),\, H[0] - 0.8\min(H),\, 0.5]$. If numerical convergence is not achieved within 1,500 iterations, the engine defaults to a robust linear-slope decay fallback:
+subject to $0 \le L_\infty \le \min(H)$, $A \ge 0$, and $10^{-4} \le B \le 10.0$, with initial guess $p_0 = [0.8\min(H),\; H[0] - 0.8\min(H),\; 0.5]$. If the solver fails to converge within 1\,500 iterations, the engine falls back to a simple linear-slope decay:
 \begin{equation}
 \widehat{L}(e+1) = \max\left(0,\, L(e) + 0.5 \cdot (L(e) - L(e-1))\right)
 \end{equation}
-This bounded design prevents premature policy abortion and ensures stable convergence.
+This bounded design keeps the gain predictor stable and prevents premature early stopping.
 
 \section{Performance Evaluation}
 
 \subsection{Experimental Setup}
-The evaluation testbed is implemented using PyTorch and the Flower federated learning framework. The client workload uses a ResNet-9 architecture modified with Group Normalization (8 groups) across convolutional stages to mitigate running-statistic divergence under non-IID data partitioning. Training is conducted on the CIFAR-10 benchmark distributed over $N = 10$ vehicular clients using symmetric Dirichlet partitioning ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$) to simulate extreme to moderate non-IID statistical heterogeneity.
+We implement the testbed in PyTorch with the Flower FL framework. Each vehicle trains a ResNet-9 model modified with Group Normalisation (8 groups per convolutional stage) to avoid running-statistic divergence under non-IID partitions. Training uses the CIFAR-10 dataset distributed across $N = 10$ vehicles via symmetric Dirichlet sampling ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$), spanning extreme to moderate statistical heterogeneity.
 
-The evaluation benchmarks include:
+We compare against the following baselines:
 \begin{itemize}
-    \item Static FedAvg baselines with fixed local epochs $E \in \{1, 5, 10\}$.
-    \item Fixed FedProx ($E = 5, \mu = 0.01$) to assess proximal regularization against client drift.
-    \item The proposed Dynamic FL policy (FedAvg and Dynamic FedProx) operating with calibrated coefficients: $\alpha = 0.005$, $\beta = 1.0$, $\gamma = 0.006$, $\delta = 27.0$, $B_{\text{thresh}} = 20.0$~Mbps, and $G_{\text{thresh}} = 0.01$. These weights were selected by extracting non-dominated solutions along the empirical Pareto frontier of an offline 100-trial hyperparameter sweep (shown in Fig.~\ref{fig:pareto_frontier}).
+    \item Static FedAvg with fixed local epochs $E \in \{1, 5, 10\}$.
+    \item Fixed FedProx ($E = 5$, $\mu = 0.01$) to assess the effect of proximal regularisation on client drift.
+    \item Our dynamic policy in two variants---Dynamic FedAvg and Dynamic FedProx---with calibrated coefficients: $\alpha = 0.005$, $\beta = 1.0$, $\gamma = 0.006$, $\delta = 27.0$, $B_{\text{thresh}} = 20.0$~Mbps, and $G_{\text{thresh}} = 0.03$. These weights were selected from the non-dominated front of a 100-trial offline hyperparameter sweep.
 \end{itemize}
-Network traces and vehicular workload occupancy $U_i^{\text{crit}}(t)$ are driven by empirical V2X channel datasets, with total cell uplink capacity modeled as a dynamic sinusoidal envelope ($B_{\text{cell}}(t) = B_{\text{max}}(0.8 + 0.2\sin(t))$) to assess performance under shared infrastructure bottlenecks.
+Network traces and vehicular safety-workload occupancy $U_i^{\text{crit}}(t)$ are driven by empirical V2X channel data, with total cell uplink capacity modelled as a sinusoidal envelope ($B_{\text{cell}}(t) = B_{\text{max}}(0.8 + 0.2\sin(t))$) to stress-test the engine under shared infrastructure bottlenecks.
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.92\linewidth]{plots/pareto_frontier_tradeoffs.pdf}
-\caption{Empirical Pareto frontiers extracted from a 100-trial offline hyperparameter sweep: (a) Global system utility ($\mathcal{U}$) vs. compute contention ($\sum c_i U_i^{\text{crit}}$) colored by learning gain weight $\delta$; (b) Model drift ($\sum D_i$) vs. cumulative network cost (MB) colored by utility. Dashed red curves identify non-dominated Pareto configurations utilized to calibrate operational engine weights.}
-\label{fig:pareto_frontier}
-\end{figure*}
-
-\begin{table*}[t]
-\caption{Comprehensive Benchmark Results Across Non-IID Dirichlet Partitions (250 Communication Rounds)}
-\label{tab:evaluation_results}
-\centering
-\begin{tabular}{lccccccr}
-\toprule
-\textbf{Policy / Scheme} & \multicolumn{3}{c}{\textbf{Centralized Test Accuracy (\%)}} & \textbf{Cumulative Uplink} & \textbf{Upload} & \textbf{Compute Contention} & \textbf{Parameter Drift} \\
- & $\alpha = 0.1$ & $\alpha = 0.3$ & $\alpha = 0.5$ & \textbf{Payload (MB)} & \textbf{Drops} & \textbf{Cost ($\sum c_i U_i^{\text{crit}}$)} & \textbf{Cost ($\sum D_i$, $\alpha=0.1 / 0.5$)} \\
-\midrule
-Fixed FedAvg ($E = 1$) & 71.09 & 77.00 & \textbf{78.84} & 23,272.2 & 567 & 100.1 & 3,635.2 / 2,977.9 \\
-Fixed FedAvg ($E = 5$) & \textbf{72.93} & \textbf{77.63} & 78.14 & 23,272.2 & 567 & 500.3 & 4,202.7 / 2,417.8 \\
-Fixed FedAvg ($E = 10$) & 68.87 & 77.50 & 78.26 & 23,272.2 & 567 & 1,000.6 & 4,309.7 / 2,474.4 \\
-Fixed FedProx ($E = 5, \mu = 0.01$) & 70.81 & 77.35 & 78.64 & 23,272.2 & 567 & 500.3 & 2,949.2 / 2,056.0 \\
-\textbf{Dynamic FedAvg (Ours)} & 70.29 & 76.51 & 78.21 & \textbf{15,238.6} & \textbf{95} & 381.6--393.0 & 3,986.0 / 2,773.9 \\
-\textbf{Dynamic FedProx (Ours)} & 72.51 & 76.79 & 78.17 & \textbf{15,238.6} & \textbf{95} & 373.0--398.5 & \textbf{2,541.1 / 2,038.3} \\
-\bottomrule
-\end{tabular}
-\end{table*}
+\input{plots/table2_results.tex}
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.98\linewidth]{plots/fig1_dirichlet_comparison.pdf}
-\caption{Global centralized test accuracy (\%) plotted against cumulative transmitted model payload (MB) across non-IID Dirichlet partitioning regimes ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$).}
+\caption{Global centralized test accuracy (\%) versus cumulative transmitted payload (MB) across three Dirichlet non-IID regimes ($\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$). The dynamic policies reach comparable accuracy to the best static baselines while transmitting substantially less data.}
 \label{fig:accuracy_vs_mb}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{plots/fig1b_uplink_dirichlet_comparison.pdf}
+\caption{Global centralized test accuracy (\%) versus cumulative \emph{uplink-only} payload (MB). Since uplink capacity is the tighter bottleneck in V2X networks, this view isolates the channel dimension where the dynamic engine delivers the largest savings.}
+\label{fig:accuracy_vs_uplink}
 \end{figure*}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.92\linewidth]{plots/fig2_accuracy_vs_wall_time.pdf}
-\caption{Global validation accuracy (\%) as a function of elapsed wall-clock execution time (seconds).}
+\caption{Global test accuracy (\%) as a function of elapsed wall-clock time (seconds). Dynamic vehicles avoid straggler delays by skipping congested upload windows.}
 \label{fig:accuracy_vs_time}
 \end{figure}
 
-\subsection{Communication Efficiency vs. Global Accuracy}
-Table~\ref{tab:evaluation_results} and Figure~\ref{fig:accuracy_vs_mb} summarize global model convergence across extreme ($\alpha_{\text{Dir}} = 0.1$), moderate ($\alpha_{\text{Dir}} = 0.3$), and mild ($\alpha_{\text{Dir}} = 0.5$) non-IID data distributions. A fundamental bottleneck in vehicular federated learning is the asymmetry and scarcity of V2I uplink capacity: while base stations can broadcast global models across broad downlink channels, vehicle-to-infrastructure uploads are constrained by physical cell bandwidth and dynamic channel fading. Static scheduling frameworks ignore this physical limitation, forcing all sampled vehicles to attempt model uploads at every round. Over 250 rounds, static baselines accumulate 23,272.2~MB (23.3~GB) in raw uplink traffic (46,544.4~MB total bidirectional transmission) and trigger 567 buffer dropouts when vehicles attempt to upload through congested channels.
+\subsection{Communication Efficiency vs.\ Global Accuracy}
+Table~\ref{tab:evaluation_results} and Figures~\ref{fig:accuracy_vs_mb}--\ref{fig:accuracy_vs_uplink} tell a consistent story: the dynamic engine reaches accuracy on par with the best fixed baselines while spending far less airtime.
 
-In contrast, our dynamic policy engine continuously monitors channel conditions and estimated local learning progress before permitting transmission. When links deteriorate, vehicles transition into \texttt{CONTINUE} or \texttt{WAIT}, keeping cumulative uplink transfers down to 15,238.6~MB. This achieves a 34.5\% reduction in pure uplink bandwidth consumption (saving over 8.0~GB of wireless transmissions, and a 17.3\% reduction in total bidirectional data) while slashing buffer dropouts by 83.2\% (from 567 to 95).
+The root cause of waste in static FL is the V2I uplink bottleneck. Base stations can broadcast global models on wide downlink channels, but vehicle uploads share a narrow, fading uplink. Fixed schedulers force every sampled vehicle to attempt an upload each round regardless of channel conditions. Over 250 rounds, all static baselines accumulate 23\,272~MB (${\sim}$23.3~GB) of raw uplink traffic and trigger 567 buffer overflows when vehicles try to push through congested channels.
 
-Crucially, these bandwidth savings do not impair convergence accuracy. Under extreme statistical heterogeneity ($\alpha_{\text{Dir}} = 0.1$), client datasets are heavily imbalanced. In this regime, Fixed FedAvg with $E=10$ overfits to skewed local partitions, causing parameter vectors to pull in contradictory directions and degrading aggregated centralized test accuracy to 68.87\%. Dynamic FedAvg attains 70.29\%, while pairing the dynamic scheduler with proximal regularization (Dynamic FedProx) achieves 72.51\%, outperforming Fixed $E=10$ (+3.64\%) and Fixed FedProx (+1.70\%). Under moderate and mild heterogeneity ($\alpha \in \{0.3, 0.5\}$), all methods reach comparable final accuracy (~76.5--77.6\% and ~78.1--78.8\%), yet the dynamic engine achieves this parity while expending one-third less uplink bandwidth and virtually eliminating upload failures.
+Our engine, by contrast, monitors both channel quality and expected learning progress before permitting transmission. When the link deteriorates, vehicles transition to \texttt{CONTINUE} or \texttt{WAIT}, keeping cumulative uplink transfers to roughly 16\,700~MB---a 28\% reduction that saves over 6.5~GB of wireless transfers---while buffer overflows drop by 76\% (from 567 to ${\sim}$138).
 
-Figure~\ref{fig:accuracy_vs_time} plots centralized test accuracy against elapsed wall-clock execution time. By bypassing congested transmission buffers and deferring training during peak safety-critical processor loads, dynamic vehicles avoid straggler delays and achieve steady wall-clock progress.
+These savings come at negligible accuracy cost. Under extreme heterogeneity ($\alpha_{\text{Dir}} = 0.1$), Dynamic FedProx reaches 72.02\%, closely matching the best static baseline (Fixed FedAvg $E{=}5$ at 72.51\%) and comfortably outperforming Fixed $E{=}1$ (68.98\%). Dynamic FedAvg achieves 70.18\%, comparable to Fixed FedProx (71.13\%) while using 28\% less uplink bandwidth. Under moderate and mild skew ($\alpha \in \{0.3, 0.5\}$) all methods converge to a similar accuracy band (${\sim}$76.8--77.8\% and ${\sim}$78.1--79.3\%), yet the dynamic engine reaches this parity while transmitting roughly a quarter less data and virtually eliminating upload failures.
+
+Figure~\ref{fig:accuracy_vs_time} plots accuracy against wall-clock time. By sidestepping congested transmission windows and deferring training during peak safety-workload periods, the dynamic engine avoids straggler delays and maintains steady progress.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.92\linewidth]{plots/fig3_cumulative_compute_interference.pdf}
-\caption{Cumulative compute interference imposed on safety-critical vehicular workloads across communication rounds.}
+\caption{Cumulative compute interference on safety-critical vehicular workloads ($\sum c_i U_i^{\text{crit}}$) over 250 rounds. The dynamic engine keeps contention well below all multi-epoch static baselines.}
 \label{fig:compute_interference}
 \end{figure}
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.98\linewidth]{plots/fig4_dirichlet_drift_comparison.pdf}
-\caption{Mean client parameter divergence ($D_i(t) = \|\mathbf{w}_i - \mathbf{w}_{\text{global}}\|_2$) across communication rounds for $\alpha_{\text{Dir}} \in \{0.1, 0.3, 0.5\}$.}
+\caption{Mean per-round model drift ($D_i(t) = \|\mathbf{w}_i - \mathbf{w}_{\text{global}}\|_2$) across Dirichlet regimes. FedProx variants consistently keep drift below FedAvg counterparts, and the dynamic engine's early-stopping prevents drift from accumulating unchecked.}
 \label{fig:model_drift}
 \end{figure*}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.92\linewidth]{plots/fig5_client_state_distribution.pdf}
-\caption{Distribution of client operational states across the 250-round simulation ($\alpha_{\text{Dir}} = 0.1$). Static regimes blindly trigger 567 buffer dropouts under channel bottlenecks, whereas the dynamic engine redirects clients into autonomous local training (\texttt{CONTINUE}) and idle compute yielding (\texttt{WAIT}).}
+\caption{Distribution of client operational states over 250 rounds ($\alpha_{\text{Dir}} = 0.1$). Static schemes trigger 567 buffer overflows; the dynamic engine redirects those clients into productive \texttt{CONTINUE} or safe \texttt{WAIT} states.}
 \label{fig:client_states}
 \end{figure}
 
-\subsection{Compute Contention and Model Drift Analysis}
-Figure~\ref{fig:compute_interference} compares cumulative compute interference on safety-critical vehicular workloads ($\sum c_i(t) U_i^{\text{crit}}(t)$). Static policies schedule local epochs without regard for co-located processor occupancy. Consequently, Fixed $E=10$ accumulates severe contention (1,000.6) and Fixed $E=5$ reaches 500.3, repeatedly training through periods when high ADAS processor demands leave minimal execution headroom. In contrast, our policy engine enforces an active compute slack threshold ($\text{slack} \ge 2.0/\rho_i$): whenever safety workload occupancy exceeds 80\% ($U_i^{\text{crit}} > 0.8$), training yields execution slack to background perception tasks. This keeps cumulative compute contention bounded between 373.0 and 398.5 across all non-IID regimes---a 60.7\% reduction compared to Fixed $E=10$ and a 21.4\% reduction compared to Fixed $E=5$.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{plots/fig6_utility_dirichlet_comparison.pdf}
+\caption{Cumulative system utility ($\mathcal{U} = \sum[\delta G_i - \alpha C_{\text{net}} - \beta C_{\text{comp}} - \gamma C_{\text{drift}}]$) across Dirichlet regimes. The dynamic engine steadily accumulates utility at a rate comparable to static baselines while incurring lower total cost, confirming that the bandwidth and compute savings do not erode learning progress.}
+\label{fig:utility}
+\end{figure*}
 
-Figure~\ref{fig:model_drift} illustrates client model drift measured via true parameter vector Euclidean distance across communication rounds. High-epoch static regimes allow local weights to diverge substantially under non-IID skew (accumulating 4,309.7 in drift under $\alpha=0.1$ for $E=10$), resulting in destructive parameter interference upon federated averaging. Dynamic FedProx curtails cumulative drift to 2,541.1 under $\alpha=0.1$ and 2,038.3 under $\alpha=0.5$---a 41.0\% drift reduction compared to Fixed $E=10$---by combining bounded utility checks that truncate unpromising epochs with proximal regularization that anchors updates to global parameters.
+\subsection{Compute Contention and Model Drift}
+Figure~\ref{fig:compute_interference} compares the cumulative compute interference each policy imposes on safety-critical vehicle tasks. Static schedules pay no attention to co-located processor occupancy: Fixed $E{=}10$ racks up 1\,000.6 units of contention, and Fixed $E{=}5$ reaches 500.3, both repeatedly training through periods when ADAS workloads leave minimal spare cycles. Our engine enforces an active slack threshold ($\text{slack} \ge 2/\rho_i$): whenever the safety workload exceeds ${\sim}80$\% of processor capacity, training yields to higher-priority tasks. As a result, the dynamic policies keep cumulative contention between 261.9 and 385.2 across all non-IID settings---up to 74\% lower than Fixed $E{=}10$ and 47\% lower than Fixed $E{=}5$.
 
-\subsection{Client Operational State Dynamics}
-Figure~\ref{fig:client_states} illustrates how vehicular clients distribute their execution across operational states over the 250-round simulation. Under static regimes ($E \in \{1, 5, 10\}$ and FedProx), clients operate in a rigid binary pattern: attempting to upload parameter updates whenever sampled, which leads to 1,933 upload attempts and 567 transmission drops due to cell capacity bottlenecks.
+Figure~\ref{fig:model_drift} shows parameter drift measured as the Euclidean distance between local and global weights. High-epoch static training allows local models to diverge sharply under non-IID skew (Fixed $E{=}10$ accumulates 4\,474.1 in cumulative drift at $\alpha{=}0.1$), leading to destructive interference during aggregation. Dynamic FedProx curtails this to 2\,724.2 at $\alpha{=}0.1$ and 2\,149.4 at $\alpha{=}0.5$---a 39\% reduction compared to Fixed $E{=}10$---by combining bounded utility checks that truncate unpromising epochs with proximal regularisation that anchors updates to the global model.
 
-In contrast, our dynamic engine actively exercises the three-state execution model. Across 2,500 client-round opportunities under severe skew ($\alpha_{\text{Dir}} = 0.1$), vehicles transitioned into \texttt{CONTINUE} 590 times and into \texttt{WAIT} 273 times. The 590 \texttt{CONTINUE} transitions represent intervals where channel throughput was inadequate for safe upload, but the vehicle predicted positive marginal loss reduction from continued local optimization. Because local weights persist on disk across simulation rounds, clients continued refining their models locally rather than forfeiting training progress. The 273 \texttt{WAIT} transitions represent critical safety and resource interventions: vehicles paused training because ADAS tasks required immediate processor capacity or because wireless conditions were poor and anticipated learning progress had plateaued. Consequently, upload dropouts dropped from 567 down to 95 (an 83.2\% reduction), transforming wasted network collisions into constructive, protected local learning.
+Figure~\ref{fig:utility} tracks cumulative system utility across all three Dirichlet settings. Despite transmitting less and training more selectively, the dynamic engine accumulates utility at a rate that keeps pace with (and in many settings matches) the best static baselines, confirming that the operational savings are not bought at the expense of learning progress.
+
+\subsection{Client State Dynamics}
+Figure~\ref{fig:client_states} shows how vehicles distribute their time across the three execution states. Static schemes operate in a rigid transmit-or-fail pattern: every sampled client attempts an upload regardless of conditions, producing 1\,933 upload attempts and 567 buffer overflows over 250 rounds.
+
+The dynamic engine paints a different picture. Under severe skew ($\alpha_{\text{Dir}} = 0.1$), Dynamic FedAvg vehicles entered \texttt{CONTINUE} 474 times---intervals where channel throughput was too low for a safe upload but continued local training still promised meaningful loss reduction. Because weights persist on disk across rounds, these vehicles kept refining their models rather than throwing away progress. Another 230 transitions went to \texttt{WAIT}, representing moments when ADAS tasks needed the processor or when both the channel and the expected learning gain were poor. Buffer overflows consequently fell from 567 to 136---a 76\% reduction---transforming wasted network collisions into either productive local training or deliberate, protected idling.
 
 \section{Conclusion}
-This paper presented an online runtime policy engine for federated learning in Software-Defined Vehicles that addresses the fundamental trade-offs between mixed-criticality onboard compute demands and time-varying V2X wireless bandwidth. By coordinating client transitions across three discrete execution states (\texttt{WAIT}, \texttt{CONTINUE}, \texttt{SYNC}) using bounded loss extrapolation and real-time slack inspection, the engine ensures that vehicular learning progress neither starves safety-critical workloads nor overburdens the cellular uplink. Empirical evaluations across non-IID Dirichlet distributions demonstrate that the dynamic engine achieves convergence competitive with high-frequency synchronization regimes while reducing cumulative uplink bandwidth consumption by 34.5\%, slashing wireless transmission buffer dropouts by 83.2\%, and reducing compute interference on safety-critical tasks by up to 60.7\%. Future research will explore integration with vehicle trajectory prediction to proactively anticipate cellular handovers and examine 5G NR sidelink (V2V) cooperative parameter exchanges for distributed local aggregation.
+We presented an online runtime policy engine for federated learning in Software-Defined Vehicles that tackles the tension between mixed-criticality onboard compute demands and time-varying V2X wireless capacity. By steering each vehicle through three execution states---\texttt{WAIT}, \texttt{CONTINUE}, and \texttt{SYNC}---using bounded loss extrapolation and real-time slack inspection, the engine ensures that learning neither starves safety-critical workloads nor overwhelms the cellular uplink. On non-IID Dirichlet-partitioned benchmarks the dynamic engine matches the convergence accuracy of the best static baselines while reducing uplink traffic by 28\%, cutting buffer overflows by 76\%, and lowering compute interference on safety tasks by up to 74\%. Future work will integrate vehicle trajectory prediction to anticipate cellular handovers and investigate 5G NR sidelink (V2V) cooperative parameter exchanges for distributed local aggregation.
 
 \begin{thebibliography}{00}
 \bibitem{ref_hong} Y. Hong, B. Lv, S. Wang, R. Wang, H. Tan, and F. C. Lau, ``Fedcars: An efficient scheduling framework for in-vehicle federated learning integrated with carla-cosimulation,'' \textit{IEEE Transactions on Vehicular Technology}, vol. 74, no. 5, pp. 7997--8011, 2025.
