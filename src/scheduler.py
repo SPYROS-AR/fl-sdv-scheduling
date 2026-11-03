@@ -9,8 +9,8 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
-from torchvision.datasets import CIFAR10, GTSRB
-from torchvision.transforms import Compose, Normalize, Resize, ToTensor
+from torchvision.datasets import CIFAR10
+from torchvision.transforms import Compose, Normalize, ToTensor
 
 import model
 from client import FLVehicle
@@ -26,7 +26,7 @@ from constants import (
     SEED,
     TEST_SPLIT,
 )
-from data_setup import DictImageSubset, setup_dataset
+from data_setup import setup_dataset
 from server import DynamicFLStrategy
 
 datasets.utils.logging.set_verbosity_error()
@@ -50,27 +50,11 @@ def weighted_accuracy(metrics):
 
 def build_centralized_eval_fn(dataset_name: str = "cifar10"):
     """Return a centralized evaluation function for the global model."""
-    dataset_name = dataset_name.lower()
-    transforms = []
-    if dataset_name == "gtsrb":
-        transforms.append(Resize((32, 32)))
-        num_classes = 43
-    else:
-        num_classes = 10
-    transforms.extend([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    eval_transforms = Compose(transforms)
-
-    if dataset_name == "gtsrb":
-        test_dataset = GTSRB(
-            root="dataset/vision",
-            split="test",
-            download=True,
-            transform=eval_transforms,
-        )
-    else:
-        test_dataset = CIFAR10(
-            root="dataset/vision", train=False, download=True, transform=eval_transforms
-        )
+    eval_transforms = Compose([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    num_classes = 10
+    test_dataset = CIFAR10(
+        root="dataset/vision", train=False, download=True, transform=eval_transforms
+    )
     test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
 
     def evaluate(
@@ -119,11 +103,9 @@ class ClientFactory:
         self.config = config
         self.dataset_name = dataset_name.lower()
         self.exp_name = exp_name
-        transforms = []
-        if self.dataset_name == "gtsrb":
-            transforms.append(Resize((32, 32)))
-        transforms.extend([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-        self.transforms = Compose(transforms)
+        self.transforms = Compose(
+            [ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+        )
         self.clients = {}
 
     def _apply_transforms(self, batch):
@@ -135,35 +117,16 @@ class ClientFactory:
         if client_id in self.clients:
             return self.clients[client_id].to_client()
 
-        if self.dataset_name == "gtsrb":
-            indices = np.asarray(self.dataset.client_indices[client_id]).copy()
-            rng = np.random.default_rng(SEED + client_id)
-            rng.shuffle(indices)
-            if len(indices) < 2:
-                raise ValueError(
-                    f"GTSRB client {client_id} has fewer than two examples."
-                )
-            num_val = max(1, int(round(len(indices) * TEST_SPLIT)))
-            num_val = min(num_val, len(indices) - 1)
-            val_indices, train_indices = indices[:num_val], indices[num_val:]
-            train_dataset = DictImageSubset(
-                self.dataset.train_dataset, train_indices, self.transforms
-            )
-            val_dataset = DictImageSubset(
-                self.dataset.train_dataset, val_indices, self.transforms
-            )
-            num_classes = 43
-        else:
-            partition = self.dataset.load_partition(
-                client_id, "train"
-            ).train_test_split(
-                test_size=TEST_SPLIT,
-                seed=SEED,
-            )
-            partition = partition.with_transform(self._apply_transforms)
-            train_dataset = partition["train"]
-            val_dataset = partition["test"]
-            num_classes = 10
+        partition = self.dataset.load_partition(
+            client_id, "train"
+        ).train_test_split(
+            test_size=TEST_SPLIT,
+            seed=SEED,
+        )
+        partition = partition.with_transform(self._apply_transforms)
+        train_dataset = partition["train"]
+        val_dataset = partition["test"]
+        num_classes = 10
 
         train_loader = DataLoader(
             train_dataset,

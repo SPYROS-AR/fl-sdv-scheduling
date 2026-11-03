@@ -19,7 +19,6 @@ DELTA = 27.0
 DATASET = "uoft-cs/cifar10"
 DIRICHLET_ALPHA = 0.2
 CIFAR10_NUM_CLASSES = 10
-GTSRB_NUM_CLASSES = 43
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # --- Client & Server Hyperparameters ---

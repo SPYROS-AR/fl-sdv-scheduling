@@ -7,7 +7,7 @@
 #SBATCH --mem=32G
 #SBATCH --output=logs/final_%A_%a.out
 #SBATCH --error=logs/final_%A_%a.err
-#SBATCH --array=0-35
+#SBATCH --array=0-17
 
 set -e
 
@@ -26,29 +26,19 @@ if [ ! -f "dataset/data/cleaned_network_dataset.csv" ]; then
   python src/setup_data.py
 fi
 
-# 2 Datasets: cifar10 (Tasks 0-17) and gtsrb (Tasks 18-35)
-DATASETS=(cifar10 gtsrb)
+# CIFAR-10 Dataset (Tasks 0-17)
+DATASET="cifar10"
 
 # 3 Dirichlet non-IID distributions: 0.1 (extreme), 0.3 (moderate), 0.5 (mild)
 ALPHAS=(0.1 0.3 0.5)
 NUM_EXPS=6
-NUM_ALPHAS=3
-NUM_TASKS_PER_DATASET=$(( NUM_ALPHAS * NUM_EXPS ))
 
-DATASET_IDX=$(( SLURM_ARRAY_TASK_ID / NUM_TASKS_PER_DATASET ))
-REMAINDER=$(( SLURM_ARRAY_TASK_ID % NUM_TASKS_PER_DATASET ))
-ALPHA_IDX=$(( REMAINDER / NUM_EXPS ))
-EXP_IDX=$(( REMAINDER % NUM_EXPS ))
+ALPHA_IDX=$(( SLURM_ARRAY_TASK_ID / NUM_EXPS ))
+EXP_IDX=$(( SLURM_ARRAY_TASK_ID % NUM_EXPS ))
 
-DATASET=${DATASETS[$DATASET_IDX]}
 DIRICHLET_ALPHA=${ALPHAS[$ALPHA_IDX]}
 ALPHA_STR="a$(echo "$DIRICHLET_ALPHA" | tr -d '.')"
-
-if [ "$DATASET" == "cifar10" ]; then
-  JOB_SUFFIX="${ALPHA_STR}"
-else
-  JOB_SUFFIX="gtsrb_${ALPHA_STR}"
-fi
+JOB_SUFFIX="${ALPHA_STR}"
 
 case $EXP_IDX in
   0) EXP_ARGS="--dataset $DATASET --dynamic_only --dirichlet-alpha $DIRICHLET_ALPHA --job-id ${JOB_SUFFIX}" ;;

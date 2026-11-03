@@ -53,7 +53,7 @@ def main():
     )
     parser.add_argument(
         "--dataset",
-        choices=["cifar10", "gtsrb"],
+        choices=["cifar10"],
         default="cifar10",
         help="Image dataset for federated learning",
     )

@@ -38,7 +38,7 @@ Conventional vehicular FL frameworks typically assume dedicated onboard compute 
 │   ├── client.py                 # FLVehicle client implementation (3-state dynamic & FedProx)
 │   ├── server.py                 # DynamicFLStrategy and round-level CSV metrics logger
 │   ├── scheduler.py              # Flower simulation orchestrator and ClientFactory caching
-│   ├── model.py                  # ResNet-9 with Group Normalization (CIFAR-10 & GTSRB)
+│   ├── model.py                  # ResNet-9 with Group Normalization (CIFAR-10)
 │   ├── constants.py              # System, networking, and utility policy hyperparameters
 │   ├── data_setup.py             # External network dataset & Dirichlet non-IID partitioning
 │   ├── data_processing.py        # Network dataset cleaning and vehicular load modeling

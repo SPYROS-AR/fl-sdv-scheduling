@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("--rounds", type=int, default=50)
     default_gpu = 0.025 if torch.cuda.is_available() else 0.0
     parser.add_argument("--gpus_per_client", type=float, default=default_gpu)
-    parser.add_argument("--dataset", choices=["cifar10", "gtsrb"], default="cifar10")
+    parser.add_argument("--dataset", choices=["cifar10"], default="cifar10")
     parser.add_argument("--dirichlet-alpha", type=float, default=0.2)
     parser.add_argument("--fedprox-mu", type=float, default=0.01)
     args = parser.parse_args()

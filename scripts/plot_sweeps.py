@@ -21,6 +21,5 @@ fig = px.parallel_coordinates(
     title="Hyperparameter Sweep: Parallel Coordinates",
 )
 
-# Save as an interactive HTML file
 fig.write_html("sweep_parallel_coordinates.html")
 print("Saved interactive chart to sweep_parallel_coordinates.html")

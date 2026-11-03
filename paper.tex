@@ -271,7 +271,7 @@ Network traces and vehicular safety-workload occupancy $U_i^{\text{crit}}(t)$ ar
 \end{figure}
 
 \subsection{Communication Efficiency vs.\ Global Accuracy}
-Table~\ref{tab:evaluation_results} and Figures~\ref{fig:accuracy_vs_mb}--\ref{fig:accuracy_vs_uplink} tell a consistent story: the dynamic engine reaches accuracy on par with the best fixed baselines while spending far less airtime.
+To evaluate practical communication efficiency over constrained V2X links, Figures 1 and 2 measure convergence directly against cumulative network megabytes transmitted rather than abstract round indices. Table~\ref{tab:evaluation_results} and Figures~\ref{fig:accuracy_vs_mb}--\ref{fig:accuracy_vs_uplink} tell a consistent story: the dynamic engine reaches accuracy on par with the best fixed baselines while spending far less airtime.
 
 The root cause of waste in static FL is the V2I uplink bottleneck. Base stations can broadcast global models on wide downlink channels, but vehicle uploads share a narrow, fading uplink. Fixed schedulers force every sampled vehicle to attempt an upload each round regardless of channel conditions. Over 250 rounds, all static baselines accumulate 23\,272~MB (${\sim}$23.3~GB) of raw uplink traffic and trigger 567 buffer overflows when vehicles try to push through congested channels.
 

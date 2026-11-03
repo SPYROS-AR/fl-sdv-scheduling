@@ -188,7 +188,7 @@ class FLVehicle(fl.client.NumPyClient):
     ):
         was_in_continue = int(bool(self._in_continue))
 
-        # 1. Compute Starvation: FL yields to higher-priority safety workloads
+        # Compute Starvation: FL yields to higher-priority safety workloads
         # Require at least MIN_EPOCH_SLACK / rho compute slack before starting local training
         if state["max_c_i"] < (MIN_EPOCH_SLACK / self.rho):
             self._in_continue = False
@@ -196,7 +196,7 @@ class FLVehicle(fl.client.NumPyClient):
             self._save_persistent_state()
             return [], 0, self._empty_metrics("WAIT", was_in_continue)
 
-        # 2. Poor Channel Bandwidth AND Low Prior Learning Gain (WAIT State)
+        # Poor channel bandwidth and low prior learning gain (WAIT state)
         is_bw_poor = state["bandwidth"] < state["bw_threshold"]
         prior_gain = getattr(self, "_last_gain", None)
         if (
@@ -254,7 +254,7 @@ class FLVehicle(fl.client.NumPyClient):
             self._save_persistent_state()
             return [], 0, self._empty_metrics("WAIT", was_in_continue)
 
-        # Blueprint Part 4: Synchronize if link is sufficient OR if accumulated drift/gain exhaustion
+        # Synchronize if link is sufficient or if accumulated drift/gain exhaustion
         # during a multi-round local trajectory requires flushing weights to the server
         is_sync = (
             state["bandwidth"] >= state["bw_threshold"]
@@ -340,9 +340,6 @@ class FLVehicle(fl.client.NumPyClient):
     def _validate(self):
         loss, _ = self._validate_model(self.model)
         return loss
-
-    def _validate_metrics(self):
-        return self._validate_model(self.model)
 
     def _validate_model(self, eval_model):
         eval_model.eval()

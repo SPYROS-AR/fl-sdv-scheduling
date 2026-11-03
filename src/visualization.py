@@ -69,18 +69,6 @@ ALPHA_METADATA = {
         "title": r"$\alpha_{\mathrm{Dir}} = 0.5$ (Mild Non-IID)",
         "label": r"$\alpha = 0.5$",
     },
-    "gtsrb_a01": {
-        "title": r"GTSRB $\alpha_{\mathrm{Dir}} = 0.1$ (Extreme Non-IID)",
-        "label": r"GTSRB $\alpha = 0.1$",
-    },
-    "gtsrb_a03": {
-        "title": r"GTSRB $\alpha_{\mathrm{Dir}} = 0.3$ (Moderate Non-IID)",
-        "label": r"GTSRB $\alpha = 0.3$",
-    },
-    "gtsrb_a05": {
-        "title": r"GTSRB $\alpha_{\mathrm{Dir}} = 0.5$ (Mild Non-IID)",
-        "label": r"GTSRB $\alpha = 0.5$",
-    },
 }
 
 
@@ -197,9 +185,6 @@ def discover_job_ids(search_dirs: list[Path]) -> list[str]:
         "a01": 1,
         "a03": 2,
         "a05": 3,
-        "gtsrb_a01": 4,
-        "gtsrb_a03": 5,
-        "gtsrb_a05": 6,
     }
     return sorted(job_ids, key=lambda x: (order.get(x, 99), x))
 
@@ -225,7 +210,7 @@ def load_metrics_data(job_id: str = "") -> dict[str, pd.DataFrame]:
             else:
                 if any(
                     exp_name.endswith(f"_{jid}")
-                    for jid in ["a01", "a03", "a05", "gtsrb_a01", "gtsrb_a03", "gtsrb_a05"]
+                    for jid in ["a01", "a03", "a05"]
                 ):
                     continue
             found_paths[path.name] = (exp_name, path)
@@ -474,19 +459,13 @@ def plot_client_state_distribution(
 def plot_multi_panel_dirichlet(
     all_jobs_data: dict[str, dict[str, pd.DataFrame]], output_dir: Path
 ):
-    """Generate 1x3 side-by-side subplot figures across Dirichlet alphas (0.1, 0.3, 0.5) for CIFAR-10 and GTSRB."""
+    """Generate 1x3 side-by-side subplot figures across Dirichlet alphas (0.1, 0.3, 0.5) for CIFAR-10."""
     suites = [
         (
             [jid for jid in ["a01", "a03", "a05"] if jid in all_jobs_data],
             "fig1_dirichlet_comparison.pdf",
             "fig4_dirichlet_drift_comparison.pdf",
             "fig5_client_state_distribution_comparison.pdf",
-        ),
-        (
-            [jid for jid in ["gtsrb_a01", "gtsrb_a03", "gtsrb_a05"] if jid in all_jobs_data],
-            "fig1_gtsrb_dirichlet_comparison.pdf",
-            "fig4_gtsrb_dirichlet_drift_comparison.pdf",
-            "fig5_gtsrb_client_state_distribution_comparison.pdf",
         ),
     ]
 
@@ -495,7 +474,7 @@ def plot_multi_panel_dirichlet(
             continue
         n_cols = len(target_alphas)
 
-        # 1. Multi-panel: Accuracy vs Cumulative Transmitted Payload
+        # Multi-panel: Accuracy vs Cumulative Transmitted Payload
         fig, axes = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
         if n_cols == 1:
             axes = [axes]
@@ -539,7 +518,7 @@ def plot_multi_panel_dirichlet(
                 legend_handles.values(),
                 legend_handles.keys(),
                 loc="upper center",
-                bbox_to_anchor=(0.5, 1.06),
+                bbox_to_anchor=(0.5, 1.12),
                 ncol=min(len(legend_handles), 4),
                 fontsize=10,
             )
@@ -549,7 +528,7 @@ def plot_multi_panel_dirichlet(
         print(f"Saved multi-panel comparison: {comparison_pdf}")
         plt.close(fig)
 
-        # 2. Multi-panel: Accuracy vs Cumulative Uplink Payload (Pure Uplink)
+        # Multi-panel: Accuracy vs Cumulative Uplink Payload (Pure Uplink)
         fig_up, axes_up = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
         if n_cols == 1:
             axes_up = [axes_up]
@@ -593,7 +572,7 @@ def plot_multi_panel_dirichlet(
                 legend_handles_up.values(),
                 legend_handles_up.keys(),
                 loc="upper center",
-                bbox_to_anchor=(0.5, 1.06),
+                bbox_to_anchor=(0.5, 1.12),
                 ncol=min(len(legend_handles_up), 4),
                 fontsize=10,
             )
@@ -604,7 +583,7 @@ def plot_multi_panel_dirichlet(
         print(f"Saved multi-panel uplink comparison: {uplink_comparison_pdf}")
         plt.close(fig_up)
 
-        # 3. Multi-panel: Cumulative Compute Interference vs Round
+        # Multi-panel: Cumulative Compute Interference vs Round
         fig_comp, axes_comp = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
         if n_cols == 1:
             axes_comp = [axes_comp]
@@ -643,7 +622,7 @@ def plot_multi_panel_dirichlet(
                 legend_handles_comp.values(),
                 legend_handles_comp.keys(),
                 loc="upper center",
-                bbox_to_anchor=(0.5, 1.06),
+                bbox_to_anchor=(0.5, 1.12),
                 ncol=min(len(legend_handles_comp), 4),
                 fontsize=10,
             )
@@ -654,7 +633,7 @@ def plot_multi_panel_dirichlet(
         print(f"Saved multi-panel compute comparison: {compute_comparison_pdf}")
         plt.close(fig_comp)
 
-        # 4. Multi-panel: Cumulative System Utility vs Round
+        # Multi-panel: Cumulative System Utility vs Round
         fig_ut, axes_ut = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
         if n_cols == 1:
             axes_ut = [axes_ut]
@@ -693,7 +672,7 @@ def plot_multi_panel_dirichlet(
                 legend_handles_ut.values(),
                 legend_handles_ut.keys(),
                 loc="upper center",
-                bbox_to_anchor=(0.5, 1.06),
+                bbox_to_anchor=(0.5, 1.12),
                 ncol=min(len(legend_handles_ut), 4),
                 fontsize=10,
             )
@@ -704,7 +683,7 @@ def plot_multi_panel_dirichlet(
         print(f"Saved multi-panel utility comparison: {utility_comparison_pdf}")
         plt.close(fig_ut)
 
-        # 5. Multi-panel: Model Drift vs Round
+        # Multi-panel: Model Drift vs Round
         fig2, axes2 = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
         if n_cols == 1:
             axes2 = [axes2]
@@ -743,7 +722,7 @@ def plot_multi_panel_dirichlet(
                 legend_handles2.values(),
                 legend_handles2.keys(),
                 loc="upper center",
-                bbox_to_anchor=(0.5, 1.06),
+                bbox_to_anchor=(0.5, 1.12),
                 ncol=min(len(legend_handles2), 4),
                 fontsize=10,
             )
@@ -753,7 +732,7 @@ def plot_multi_panel_dirichlet(
         print(f"Saved multi-panel drift comparison: {drift_comparison_pdf}")
         plt.close(fig2)
 
-        # 3. Multi-panel: Client Operational State Distribution (Stacked Bars)
+        # Multi-panel: Client Operational State Distribution (Stacked Bars)
         fig3, axes3 = plt.subplots(1, n_cols, figsize=(6.0 * n_cols, 4.8), sharey=True)
         if n_cols == 1:
             axes3 = [axes3]
@@ -850,7 +829,7 @@ def plot_multi_panel_dirichlet(
                 "DROPPED (Network Limit)",
             ],
             loc="upper center",
-            bbox_to_anchor=(0.5, 1.06),
+            bbox_to_anchor=(0.5, 1.12),
             ncol=4,
             fontsize=10,
         )
