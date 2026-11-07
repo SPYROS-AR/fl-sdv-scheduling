@@ -1,6 +1,5 @@
 import argparse
 from pathlib import Path
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -214,7 +213,6 @@ def load_metrics_data(job_id: str = "") -> dict[str, pd.DataFrame]:
                 ):
                     continue
             found_paths[path.name] = (exp_name, path)
-
     for exp_name, path in found_paths.values():
         try:
             df = pd.read_csv(path)
@@ -285,7 +283,6 @@ def plot_required_metrics(
             "percent": False,
         },
     ]
-
     for spec in plot_specs:
         fig, ax = plt.subplots(figsize=(8, 5))
         plotted = 0
@@ -318,7 +315,6 @@ def plot_required_metrics(
                 **{key: val for key, val in style.items() if key != "label"},
             )
             plotted += 1
-
         title_suffix = (
             f" ({ALPHA_METADATA[job_id]['title']})"
             if job_id in ALPHA_METADATA
@@ -329,7 +325,7 @@ def plot_required_metrics(
         ax.set_ylabel(spec["ylabel"])
         ax.grid(True, linestyle="--", alpha=0.5)
         if plotted:
-            ax.legend(loc="best")
+            ax.legend(loc="best", framealpha=0.9)
         else:
             ax.text(
                 0.5,
@@ -374,7 +370,6 @@ def plot_client_state_distribution(
     present_exps += [e for e in data.keys() if e not in present_exps]
     if not present_exps:
         return
-
     labels = []
     syncs, continues, waits, dropped = [], [], [], []
     for exp in present_exps:
@@ -392,14 +387,15 @@ def plot_client_state_distribution(
         dropped.append(
             int(pd.to_numeric(df.get("dropped", 0), errors="coerce").fillna(0).sum())
         )
-
     x = np.arange(len(labels))
     width = 0.55
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(8.2, 5.4))
     syncs_arr = np.array(syncs)
     continues_arr = np.array(continues)
     waits_arr = np.array(waits)
     dropped_arr = np.array(dropped)
+    totals = syncs_arr + continues_arr + waits_arr + dropped_arr
+    max_total = int(totals.max()) if len(totals) > 0 else 2500
 
     ax.bar(x, syncs_arr, width, label="SYNC (Upload)", color="#2A9D8F")
     ax.bar(
@@ -427,6 +423,8 @@ def plot_client_state_distribution(
         color="#E63946",
     )
 
+    # Add headroom at the top of the y-axis and place legend cleanly above the plot area
+    ax.set_ylim(0, max_total * 1.06)
     title_suffix = (
         f" ({ALPHA_METADATA[job_id]['title']})"
         if job_id in ALPHA_METADATA
@@ -436,14 +434,21 @@ def plot_client_state_distribution(
         f"Distribution of Client Operational States{title_suffix}",
         fontsize=12,
         fontweight="bold",
+        pad=38,
     )
     ax.set_ylabel("Total Client Occurrences")
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=9)
-    ax.legend(title="Operational State", loc="upper right", framealpha=0.9)
+    ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=9.5)
+    ax.legend(
+        loc="lower center",
+        bbox_to_anchor=(0.5, 1.01),
+        ncol=2,
+        frameon=True,
+        framealpha=0.95,
+        fontsize=9,
+    )
     ax.grid(True, linestyle="--", alpha=0.5, axis="y")
     fig.tight_layout()
-
     filename = "fig5_client_state_distribution.pdf"
     if job_id:
         suffixed_dest = output_dir / f"fig5_client_state_distribution_{job_id}.pdf"
@@ -468,7 +473,6 @@ def plot_multi_panel_dirichlet(
             "fig5_client_state_distribution_comparison.pdf",
         ),
     ]
-
     for target_alphas, fig1_name, fig4_name, fig5_name in suites:
         if len(target_alphas) < 2:
             continue
@@ -513,23 +517,26 @@ def plot_multi_panel_dirichlet(
             if idx == 0:
                 ax.set_ylabel("Global Test Accuracy (%)", fontsize=11)
             ax.grid(True, linestyle="--", alpha=0.5)
+        fig.tight_layout(rect=[0, 0, 1, 0.90])
         if legend_handles:
             fig.legend(
                 legend_handles.values(),
                 legend_handles.keys(),
-                loc="upper center",
-                bbox_to_anchor=(0.5, 1.12),
-                ncol=min(len(legend_handles), 4),
+                loc="lower center",
+                bbox_to_anchor=(0.5, 0.92),
+                ncol=min(len(legend_handles), 3),
+                frameon=True,
                 fontsize=10,
             )
-        fig.tight_layout()
         comparison_pdf = output_dir / fig1_name
         fig.savefig(comparison_pdf, dpi=300, bbox_inches="tight")
         print(f"Saved multi-panel comparison: {comparison_pdf}")
         plt.close(fig)
 
         # Multi-panel: Accuracy vs Cumulative Uplink Payload (Pure Uplink)
-        fig_up, axes_up = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
+        fig_up, axes_up = plt.subplots(
+            1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True
+        )
         if n_cols == 1:
             axes_up = [axes_up]
         legend_handles_up = {}
@@ -567,16 +574,17 @@ def plot_multi_panel_dirichlet(
             if idx == 0:
                 ax.set_ylabel("Global Test Accuracy (%)", fontsize=11)
             ax.grid(True, linestyle="--", alpha=0.5)
+        fig_up.tight_layout(rect=[0, 0, 1, 0.90])
         if legend_handles_up:
             fig_up.legend(
                 legend_handles_up.values(),
                 legend_handles_up.keys(),
-                loc="upper center",
-                bbox_to_anchor=(0.5, 1.12),
-                ncol=min(len(legend_handles_up), 4),
+                loc="lower center",
+                bbox_to_anchor=(0.5, 0.92),
+                ncol=min(len(legend_handles_up), 3),
+                frameon=True,
                 fontsize=10,
             )
-        fig_up.tight_layout()
         uplink_fig_name = fig1_name.replace("fig1_", "fig1b_uplink_")
         uplink_comparison_pdf = output_dir / uplink_fig_name
         fig_up.savefig(uplink_comparison_pdf, dpi=300, bbox_inches="tight")
@@ -584,7 +592,9 @@ def plot_multi_panel_dirichlet(
         plt.close(fig_up)
 
         # Multi-panel: Cumulative Compute Interference vs Round
-        fig_comp, axes_comp = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
+        fig_comp, axes_comp = plt.subplots(
+            1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True
+        )
         if n_cols == 1:
             axes_comp = [axes_comp]
         legend_handles_comp = {}
@@ -617,16 +627,17 @@ def plot_multi_panel_dirichlet(
             if idx == 0:
                 ax.set_ylabel("Cumulative Compute Interference", fontsize=11)
             ax.grid(True, linestyle="--", alpha=0.5)
+        fig_comp.tight_layout(rect=[0, 0, 1, 0.90])
         if legend_handles_comp:
             fig_comp.legend(
                 legend_handles_comp.values(),
                 legend_handles_comp.keys(),
-                loc="upper center",
-                bbox_to_anchor=(0.5, 1.12),
-                ncol=min(len(legend_handles_comp), 4),
+                loc="lower center",
+                bbox_to_anchor=(0.5, 0.92),
+                ncol=min(len(legend_handles_comp), 3),
+                frameon=True,
                 fontsize=10,
             )
-        fig_comp.tight_layout()
         compute_fig_name = fig1_name.replace("fig1_", "fig3_compute_")
         compute_comparison_pdf = output_dir / compute_fig_name
         fig_comp.savefig(compute_comparison_pdf, dpi=300, bbox_inches="tight")
@@ -634,7 +645,9 @@ def plot_multi_panel_dirichlet(
         plt.close(fig_comp)
 
         # Multi-panel: Cumulative System Utility vs Round
-        fig_ut, axes_ut = plt.subplots(1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True)
+        fig_ut, axes_ut = plt.subplots(
+            1, n_cols, figsize=(5.8 * n_cols, 4.8), sharey=True
+        )
         if n_cols == 1:
             axes_ut = [axes_ut]
         legend_handles_ut = {}
@@ -667,16 +680,17 @@ def plot_multi_panel_dirichlet(
             if idx == 0:
                 ax.set_ylabel("Cumulative System Utility", fontsize=11)
             ax.grid(True, linestyle="--", alpha=0.5)
+        fig_ut.tight_layout(rect=[0, 0, 1, 0.90])
         if legend_handles_ut:
             fig_ut.legend(
                 legend_handles_ut.values(),
                 legend_handles_ut.keys(),
-                loc="upper center",
-                bbox_to_anchor=(0.5, 1.12),
-                ncol=min(len(legend_handles_ut), 4),
+                loc="lower center",
+                bbox_to_anchor=(0.5, 0.92),
+                ncol=min(len(legend_handles_ut), 3),
+                frameon=True,
                 fontsize=10,
             )
-        fig_ut.tight_layout()
         utility_fig_name = fig1_name.replace("fig1_", "fig6_utility_")
         utility_comparison_pdf = output_dir / utility_fig_name
         fig_ut.savefig(utility_comparison_pdf, dpi=300, bbox_inches="tight")
@@ -717,16 +731,17 @@ def plot_multi_panel_dirichlet(
             if idx == 0:
                 ax.set_ylabel("Mean Parameter Drift (L2 distance)", fontsize=11)
             ax.grid(True, linestyle="--", alpha=0.5)
+        fig2.tight_layout(rect=[0, 0, 1, 0.90])
         if legend_handles2:
             fig2.legend(
                 legend_handles2.values(),
                 legend_handles2.keys(),
-                loc="upper center",
-                bbox_to_anchor=(0.5, 1.12),
-                ncol=min(len(legend_handles2), 4),
+                loc="lower center",
+                bbox_to_anchor=(0.5, 0.92),
+                ncol=min(len(legend_handles2), 3),
+                frameon=True,
                 fontsize=10,
             )
-        fig2.tight_layout()
         drift_comparison_pdf = output_dir / fig4_name
         fig2.savefig(drift_comparison_pdf, dpi=300, bbox_inches="tight")
         print(f"Saved multi-panel drift comparison: {drift_comparison_pdf}")
@@ -757,7 +772,11 @@ def plot_multi_panel_dirichlet(
             present_exps += [e for e in data.keys() if e not in present_exps]
             labels = [_style_for(e)["label"] for e in present_exps]
             syncs = [
-                int(pd.to_numeric(data[e].get("syncs", 0), errors="coerce").fillna(0).sum())
+                int(
+                    pd.to_numeric(data[e].get("syncs", 0), errors="coerce")
+                    .fillna(0)
+                    .sum()
+                )
                 for e in present_exps
             ]
             continues = [
@@ -769,7 +788,11 @@ def plot_multi_panel_dirichlet(
                 for e in present_exps
             ]
             waits = [
-                int(pd.to_numeric(data[e].get("waits", 0), errors="coerce").fillna(0).sum())
+                int(
+                    pd.to_numeric(data[e].get("waits", 0), errors="coerce")
+                    .fillna(0)
+                    .sum()
+                )
                 for e in present_exps
             ]
             dropped = [
@@ -786,6 +809,9 @@ def plot_multi_panel_dirichlet(
             continues_arr = np.array(continues)
             waits_arr = np.array(waits)
             dropped_arr = np.array(dropped)
+            totals = syncs_arr + continues_arr + waits_arr + dropped_arr
+            max_total = int(totals.max()) if len(totals) > 0 else 2500
+
             p1 = ax.bar(x, syncs_arr, width, label="SYNC (Upload)", color="#2A9D8F")
             p2 = ax.bar(
                 x,
@@ -811,6 +837,7 @@ def plot_multi_panel_dirichlet(
                 label="DROPPED (Buffer Limit)",
                 color="#E63946",
             )
+            ax.set_ylim(0, max_total * 1.06)
             if not p_handles:
                 p_handles = [p1, p2, p3, p4]
             title = ALPHA_METADATA.get(jid, {}).get("title", f"Partition: {jid}")
@@ -820,6 +847,7 @@ def plot_multi_panel_dirichlet(
             ax.set_xticks(x)
             ax.set_xticklabels(labels, rotation=35, ha="right", fontsize=8.5)
             ax.grid(True, linestyle="--", alpha=0.5, axis="y")
+        fig3.tight_layout(rect=[0, 0, 1, 0.90])
         fig3.legend(
             p_handles,
             [
@@ -828,12 +856,12 @@ def plot_multi_panel_dirichlet(
                 "WAIT (Idle / Yield Slack)",
                 "DROPPED (Network Limit)",
             ],
-            loc="upper center",
-            bbox_to_anchor=(0.5, 1.12),
+            loc="lower center",
+            bbox_to_anchor=(0.5, 0.92),
             ncol=4,
+            frameon=True,
             fontsize=10,
         )
-        fig3.tight_layout()
         states_comparison_pdf = output_dir / fig5_name
         fig3.savefig(states_comparison_pdf, dpi=300, bbox_inches="tight")
         print(f"Saved multi-panel state distribution: {states_comparison_pdf}")
@@ -853,7 +881,6 @@ def export_latex_table(
         ("dynamic", r"\textbf{Dynamic FedAvg (Ours)}"),
         ("dynamic_fedprox", r"\textbf{Dynamic FedProx (Ours)}"),
     ]
-
     lines = [
         r"\begin{table*}[t]",
         r"\caption{Comprehensive Benchmark Results Across Non-IID Dirichlet Partitions (250 Communication Rounds)}",
@@ -865,7 +892,6 @@ def export_latex_table(
         r" & $\alpha = 0.1$ & $\alpha = 0.3$ & $\alpha = 0.5$ & \textbf{Payload (MB)} & \textbf{Drops} & \textbf{Cost ($\sum c_i U_i^{\text{crit}}$)} & \textbf{Cost ($\sum D_i$, $\alpha=0.1 / 0.5$)} \\",
         r"\midrule",
     ]
-
     for key, name in schemes:
         accs = []
         for a in ["a01", "a03", "a05"]:
@@ -884,15 +910,12 @@ def export_latex_table(
                 accs.append(f"{acc:.2f}")
             else:
                 accs.append("-")
-
         data01 = all_jobs_data.get("a01", {}).get(key)
         data05 = all_jobs_data.get("a05", {}).get(key)
-
         if data01 is not None and not data01.empty:
             last01 = data01.iloc[-1]
             up_mb = f"{float(last01.get('total_uplink_mb', 0)):,.1f}"
             drops = f"{int(pd.to_numeric(data01.get('dropped', 0), errors='coerce').fillna(0).sum())}"
-
             if key in {"dynamic", "dynamic_fedprox"}:
                 comp_vals = []
                 for a in ["a01", "a03", "a05"]:
@@ -910,28 +933,25 @@ def export_latex_table(
                     comp = f"{float(last01.get('total_c_comp', 0)):.1f}"
             else:
                 comp = f"{float(last01.get('total_c_comp', 0)):.1f}"
-
             drift01 = f"{float(last01.get('total_c_drift', 0)):,.1f}"
         else:
             up_mb = drops = comp = drift01 = "-"
-
         drift05 = (
             f"{float(data05.iloc[-1].get('total_c_drift', 0)):,.1f}"
             if data05 is not None and not data05.empty
             else "-"
         )
         drift_str = f"{drift01} / {drift05}"
-
         lines.append(
             f"{name} & {accs[0]} & {accs[1]} & {accs[2]} & {up_mb} & {drops} & {comp} & {drift_str} \\\\"
         )
-
-    lines.extend([
-        r"\bottomrule",
-        r"\end{tabular}",
-        r"\end{table*}",
-    ])
-
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\end{table*}",
+        ]
+    )
     latex_code = "\n".join(lines)
     if output_path:
         Path(output_path).write_text(latex_code)
@@ -970,7 +990,9 @@ def main(job_id: str = "", export_table: bool = False):
                 plot_multi_panel_dirichlet(all_jobs_data, output_dir)
             if export_table or len(all_jobs_data) >= 2:
                 print("\n--- Generating LaTeX Table II ---")
-                tbl = export_latex_table(all_jobs_data, output_dir / "table2_results.tex")
+                tbl = export_latex_table(
+                    all_jobs_data, output_dir / "table2_results.tex"
+                )
                 print(tbl)
         else:
             print("No suffixed metrics found. Loading default unsuffixed metrics...")
@@ -984,7 +1006,9 @@ def main(job_id: str = "", export_table: bool = False):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Plot SDV federated-learning metrics.")
+    parser = argparse.ArgumentParser(
+        description="Plot SDV federated-learning metrics."
+    )
     parser.add_argument(
         "--job_id",
         "--job-id",
