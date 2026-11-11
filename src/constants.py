@@ -38,3 +38,12 @@ MAX_CONTINUE_ROUNDS = 5
 MIN_EPOCH_SLACK = (
     2.0  # Minimum epoch slack required to start curve-fitted dynamic training
 )
+
+# --- Added by the audit fixes ---
+TAU_CONTINUE_UTILITY = 0.75  # tau for --stop-rule utility: g_min ~ 0.03 at U=0.4, D=2
+DRIFT_SYNC_FRACTION = 0.85  # SYNC over a weak link once D > 0.85 * D_max
+KAPPA_MBIT_PER_MIB = 8.388608  # 1 MiB = 8.388608 Mbit
+# Simulated V2X clock (modeling assumptions, override from the CLI):
+SIM_SAMPLES_PER_SECOND = 1000.0  # training samples/s with the whole processor
+VAL_COST_RATIO = 1.0 / 3.0  # a validation sample costs ~1/3 of a training sample
+STICKY_MEAN_DWELL = 10.0  # mean rounds a vehicle stays in one road environment

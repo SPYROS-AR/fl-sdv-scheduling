@@ -18,3 +18,8 @@ plots/*.pdf
 .agents/
 final_metrics_old_backup/
 plots_old_backup/
+
+# audit fixes
+.client_cache/
+.pytest_cache/
+results/
